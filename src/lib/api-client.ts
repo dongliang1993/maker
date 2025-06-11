@@ -61,6 +61,12 @@ class ApiClient {
       throw new Error(error.error || '删除失败')
     }
   }
+
+  async generations() {
+    const response = await fetch(`${this.baseUrl}/generations`, {
+      method: 'POST',
+    })
+  }
 }
 
 export const apiClient = new ApiClient()
