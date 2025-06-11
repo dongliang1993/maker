@@ -19,34 +19,83 @@ import {
   UpdateIcon,
 } from '@radix-ui/react-icons'
 import { ResizablePanel } from '@/components/ResizablePanel'
-import { r2StorageService } from '@/services/r2-storage'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { useUploadImage } from '@/lib/queries'
 
 interface Message {
+  id: string
   type: 'text' | 'image'
   content: string
   role: 'user' | 'assistant'
+  timestamp: number
+}
+
+// 从 localStorage 加载消息
+const loadMessages = (): Message[] => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('chat-messages')
+  return saved ? JSON.parse(saved) : []
+}
+
+// 保存消息到 localStorage
+const saveMessages = (messages: Message[]) => {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('chat-messages', JSON.stringify(messages))
 }
 
 export default function CanvasPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      type: 'text',
-      content: '你好！我是你的 AI 助手，请告诉我你想要对图片进行什么样的处理？',
-      role: 'assistant',
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
-  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
+
+  // 初始化加载消息
+  useEffect(() => {
+    const savedMessages = loadMessages()
+    if (savedMessages.length === 0) {
+      // 如果没有保存的消息，添加欢迎消息
+      const welcomeMessage: Message = {
+        id: 'welcome',
+        type: 'text',
+        content:
+          '你好！我是你的 AI 助手，请告诉我你想要对图片进行什么样的处理？',
+        role: 'assistant',
+        timestamp: Date.now(),
+      }
+      setMessages([welcomeMessage])
+      saveMessages([welcomeMessage])
+    } else {
+      setMessages(savedMessages)
+    }
+  }, [])
+
+  // 当消息更新时保存到 localStorage
+  useEffect(() => {
+    saveMessages(messages)
+  }, [messages])
+
+  // 自动滚动到最新消息
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const element = scrollAreaRef.current
+      element.scrollTop = element.scrollHeight
+    }
+  }, [messages])
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return
 
-    setMessages((prev) => [
-      ...prev,
-      { type: 'text', content: inputValue, role: 'user' },
-    ])
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'text',
+      content: inputValue,
+      role: 'user',
+      timestamp: Date.now(),
+    }
+
+    setMessages((prev) => [...prev, newMessage])
     setInputValue('')
   }
 
@@ -54,25 +103,34 @@ export default function CanvasPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    try {
-      setIsUploading(true)
-      const result = await r2StorageService.uploadFile(file)
-      setMessages((prev) => [
-        ...prev,
-        { type: 'image', content: result.url, role: 'user' },
-      ])
-    } catch (error) {
-      console.error('上传图片失败:', error)
-      setMessages((prev) => [
-        ...prev,
-        { type: 'text', content: '图片上传失败，请重试', role: 'assistant' },
-      ])
-    } finally {
-      setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    }
+    uploadImage(file, {
+      onSuccess: (result) => {
+        const newMessage: Message = {
+          id: Date.now().toString(),
+          type: 'image',
+          content: result.url,
+          role: 'user',
+          timestamp: Date.now(),
+        }
+        setMessages((prev) => [...prev, newMessage])
+      },
+      onError: (error) => {
+        console.error('上传图片失败:', error)
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          type: 'text',
+          content: '图片上传失败，请重试',
+          role: 'assistant',
+          timestamp: Date.now(),
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      },
+      onSettled: () => {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+      },
+    })
   }
 
   return (
@@ -137,14 +195,15 @@ export default function CanvasPage() {
           >
             {/* 聊天记录区域 */}
             <ScrollArea
+              ref={scrollAreaRef}
               style={{
                 flex: 1,
                 padding: '20px',
               }}
             >
-              {messages.map((message, index) => (
+              {messages.map((message) => (
                 <Box
-                  key={index}
+                  key={message.id}
                   mb='4'
                   style={{
                     display: 'flex',

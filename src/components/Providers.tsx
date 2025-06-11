@@ -2,8 +2,22 @@
 
 import { Theme } from '@radix-ui/themes'
 import { RootLayoutContent } from './RootLayoutContent'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { PropsWithChildren, useState } from 'react'
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: PropsWithChildren) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 分钟
+            retry: 1,
+          },
+        },
+      })
+  )
+
   return (
     <Theme
       appearance='light'
@@ -13,7 +27,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       scaling='100%'
       radius='medium'
     >
-      <RootLayoutContent>{children}</RootLayoutContent>
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutContent>{children}</RootLayoutContent>
+      </QueryClientProvider>
     </Theme>
   )
 }
