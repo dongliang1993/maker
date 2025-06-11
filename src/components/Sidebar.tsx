@@ -16,19 +16,18 @@ export function Sidebar() {
       py='6'
       style={{
         height: '100vh',
-        borderRight: '1px solid var(--gray-a5)',
+        borderRight: '1px solid var(--gray-a4)',
         position: 'sticky',
         top: 0,
         width: 200,
-        backgroundColor: 'var(--gray-1)',
       }}
     >
       <ScrollArea>
         <Flex direction='column' gap='2'>
           <Link href='/' passHref style={{ width: '100%' }}>
             <Button
-              variant={isActive('/') ? 'soft' : 'ghost'}
-              color={isActive('/') ? 'iris' : 'gray'}
+              variant={isActive('/') ? 'surface' : 'ghost'}
+              color='gray'
               style={{
                 width: '100%',
                 justifyContent: 'center',
@@ -42,8 +41,8 @@ export function Sidebar() {
 
           <Link href='/projects' passHref style={{ width: '100%' }}>
             <Button
-              variant={isActive('/projects') ? 'soft' : 'ghost'}
-              color={isActive('/projects') ? 'iris' : 'gray'}
+              variant={isActive('/projects') ? 'surface' : 'ghost'}
+              color='gray'
               style={{
                 width: '100%',
                 justifyContent: 'center',
