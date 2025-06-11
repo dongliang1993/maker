@@ -98,3 +98,13 @@ export class R2Storage {
     return `${process.env.CLOUDFLARE_R2_PUBLIC_URL}/${key}`
   }
 }
+
+// 初始化 R2Storage 实例
+const r2Storage = new R2Storage({
+  accountId: process.env.CLOUDFLARE_R2_ACCOUNT_ID!,
+  accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
+  secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
+  bucketName: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
+})
+
+export { r2Storage }

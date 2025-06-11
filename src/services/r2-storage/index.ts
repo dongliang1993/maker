@@ -1,12 +1,4 @@
-import { R2Storage } from '@/lib/r2-storage'
-
-// 初始化 R2Storage 实例
-const r2Storage = new R2Storage({
-  accountId: process.env.CLOUDFLARE_R2_ACCOUNT_ID!,
-  accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
-  secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!,
-  bucketName: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
-})
+import { r2Storage } from '@/lib/r2-storage'
 
 /**
  * 生成唯一的文件名

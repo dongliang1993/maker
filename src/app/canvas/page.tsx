@@ -10,17 +10,11 @@ import {
   ScrollArea,
   Box,
 } from '@radix-ui/themes'
-import {
-  PaperPlaneIcon,
-  Link2Icon,
-  GlobeIcon,
-  GridIcon,
-  ImageIcon,
-  UpdateIcon,
-} from '@radix-ui/react-icons'
+import { PaperPlaneIcon, ImageIcon } from '@radix-ui/react-icons'
 import { ResizablePanel } from '@/components/ResizablePanel'
 import { useRef, useState, useEffect } from 'react'
 import { useUploadImage } from '@/lib/queries'
+import { FluxKontextService } from '@/lib/flux-kontext'
 
 interface Message {
   id: string
@@ -46,6 +40,7 @@ const saveMessages = (messages: Message[]) => {
 export default function CanvasPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
@@ -84,10 +79,10 @@ export default function CanvasPage() {
     }
   }, [messages])
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return
+  const handleSendMessage = async () => {
+    if (isProcessing) return
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       type: 'text',
       content: inputValue,
@@ -95,8 +90,68 @@ export default function CanvasPage() {
       timestamp: Date.now(),
     }
 
-    setMessages((prev) => [...prev, newMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInputValue('')
+    setIsProcessing(true)
+
+    try {
+      // 查找最近的一张图片消息
+      const lastImageMessage = [...messages]
+        .reverse()
+        .find((msg) => msg.type === 'image')
+
+      if (!lastImageMessage) {
+        throw new Error('请先上传一张图片')
+      }
+
+      // 添加处理中的消息
+      const processingMessage: Message = {
+        id: 'processing',
+        type: 'text',
+        content: '正在处理图片，请稍候...',
+        role: 'assistant',
+        timestamp: Date.now(),
+      }
+      setMessages((prev) => [...prev, processingMessage])
+
+      // 调用 Flux API 进行吉卜力风格转换
+      const result = await FluxKontextService.editImagePro({
+        image_url: lastImageMessage.content,
+        prompt:
+          "Transform this image into Studio Ghibli animation style, maintaining the original composition but adding Ghibli's characteristic soft, hand-drawn aesthetic, watercolor-like backgrounds, and whimsical atmosphere. Use Hayao Miyazaki's distinctive art style with attention to natural elements and environmental details. Keep the same scene and action but render it as if it were a frame from a Ghibli film.",
+        num_images: 1,
+        guidance_scale: 7.5,
+      })
+
+      // 移除处理中的消息
+      setMessages((prev) => prev.filter((msg) => msg.id !== 'processing'))
+
+      // 添加生成的图片消息
+      if (result.images && result.images.length > 0) {
+        const generatedMessage: Message = {
+          id: Date.now().toString(),
+          type: 'image',
+          content: result.images[0].url,
+          role: 'assistant',
+          timestamp: Date.now(),
+        }
+        setMessages((prev) => [...prev, generatedMessage])
+      }
+    } catch (error) {
+      console.error('图片处理错误:', error)
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        type: 'text',
+        content:
+          error instanceof Error ? error.message : '图片处理失败，请重试',
+        role: 'assistant',
+        timestamp: Date.now(),
+      }
+      setMessages((prev) => prev.filter((msg) => msg.id !== 'processing'))
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,21 +299,28 @@ export default function CanvasPage() {
             <Box
               p='4'
               style={{
-                border: '1px solid var(--gray-a4)',
-                borderRadius: 'var(--radius-5)',
-                position: 'sticky',
-                bottom: 0,
+                borderTop: '1px solid var(--gray-a4)',
                 backgroundColor: 'var(--color-background)',
               }}
             >
-              <Flex direction='column' gap='3'>
+              <Flex gap='3'>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                  ref={fileInputRef}
+                />
+                <Button
+                  variant='soft'
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  <ImageIcon />
+                </Button>
                 <TextArea
-                  placeholder='请输入你的设计要求...'
-                  variant='surface'
-                  rows={3}
-                  style={{
-                    border: '0',
-                  }}
+                  placeholder='输入提示词...'
+                  style={{ flex: 1 }}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -268,46 +330,9 @@ export default function CanvasPage() {
                     }
                   }}
                 />
-                <Flex gap='2' justify='between' align='center'>
-                  <Flex gap='2'>
-                    <input
-                      type='file'
-                      accept='image/*'
-                      style={{ display: 'none' }}
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      disabled={isUploading}
-                    />
-                    <Button
-                      variant='surface'
-                      size='1'
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                    >
-                      {isUploading ? (
-                        <UpdateIcon
-                          width='14'
-                          height='14'
-                          className='animate-spin'
-                        />
-                      ) : (
-                        <ImageIcon width='14' height='14' />
-                      )}
-                    </Button>
-                    <Button variant='surface' size='1'>
-                      <Link2Icon width='14' height='14' />
-                    </Button>
-                    <Button variant='surface' size='1'>
-                      <GlobeIcon width='14' height='14' />
-                    </Button>
-                    <Button variant='surface' size='1'>
-                      <GridIcon width='14' height='14' />
-                    </Button>
-                  </Flex>
-                  <Button size='2' onClick={handleSendMessage}>
-                    <PaperPlaneIcon width='16' height='16' />
-                  </Button>
-                </Flex>
+                <Button onClick={handleSendMessage} disabled={isProcessing}>
+                  <PaperPlaneIcon />
+                </Button>
               </Flex>
             </Box>
           </Flex>
