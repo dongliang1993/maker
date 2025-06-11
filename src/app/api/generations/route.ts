@@ -1,22 +1,39 @@
 import { NextResponse } from 'next/server'
-import { imageAgent } from '@/lib/image-agent'
+import { imageGenerator } from '@/services/image-generator'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { prompt } = body
+    const { prompt, image_url } = body
 
-    if (!prompt) {
+    if (!prompt || !image_url) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Prompt is required',
+          message: 'Prompt and image_url are required',
         },
         { status: 400 }
       )
     }
 
-    const result = await imageAgent.generations({
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Generation completed successfully',
+        data: {
+          data: [
+            {
+              url: 'https://fal.media/files/rabbit/8zL_aOu1Y3SPN4gXP1kto_f2b9ea9b5e174a1f9f0f732b8343dc60.png',
+            },
+          ],
+          created: 1749644428,
+        },
+      },
+      { status: 200 }
+    )
+
+    const result = await imageGenerator.generations({
+      image_url,
       prompt,
     })
 

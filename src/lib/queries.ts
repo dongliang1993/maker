@@ -27,6 +27,7 @@ export const useDeleteImage = () => {
 // 转换图片的 mutation hook
 export const useGenerationsImage = () => {
   return useMutation({
-    mutationFn: () => apiClient.generations(),
+    mutationFn: (body: { prompt: string; image_url: string }) =>
+      apiClient.generations(body).then((data) => data.data),
   })
 }

@@ -62,10 +62,25 @@ class ApiClient {
     }
   }
 
-  async generations() {
+  /**
+   * 生成图片
+   * @param body 请求体
+   * @returns 返回结果
+   */
+  async generations(body: { prompt: string; image_url: string }) {
     const response = await fetch(`${this.baseUrl}/generations`, {
       method: 'POST',
+      body: JSON.stringify(body),
     })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || '生成失败')
+    }
+
+    const data = await response.json()
+
+    return data.data
   }
 }
 

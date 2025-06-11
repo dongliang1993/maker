@@ -13,8 +13,7 @@ import {
 import { PaperPlaneIcon, ImageIcon } from '@radix-ui/react-icons'
 import { ResizablePanel } from '@/components/ResizablePanel'
 import { useRef, useState, useEffect } from 'react'
-import { useUploadImage } from '@/lib/queries'
-import { imageAgent } from '@/lib/image-agent'
+import { useUploadImage, useGenerationsImage } from '@/lib/queries'
 
 interface Message {
   id: string
@@ -45,6 +44,8 @@ export default function CanvasPage() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
+
+  const { mutateAsync: generationsImage } = useGenerationsImage()
 
   // 初始化加载消息
   useEffect(() => {
@@ -115,21 +116,20 @@ export default function CanvasPage() {
       setMessages((prev) => [...prev, processingMessage])
 
       // 调用 Flux API 进行吉卜力风格转换
-      const result = await imageAgent.generations({
-        prompt: `${lastImageMessage.content} Transform this image into Studio Ghibli animation style, maintaining the original composition but adding Ghibli's characteristic soft, hand-drawn aesthetic, watercolor-like backgrounds, and whimsical atmosphere. Use Hayao Miyazaki's distinctive art style with attention to natural elements and environmental details. Keep the same scene and action but render it as if it were a frame from a Ghibli film.`,
+      const result = await generationsImage({
+        image_url: lastImageMessage.content,
+        prompt: inputValue,
       })
-
-      console.log(result, 'result')
 
       // 移除处理中的消息
       setMessages((prev) => prev.filter((msg) => msg.id !== 'processing'))
 
       // 添加生成的图片消息
-      if (result.data && result.data.length > 0) {
+      if (result && result.length > 0) {
         const generatedMessage: Message = {
           id: Date.now().toString(),
           type: 'image',
-          content: result.data[0].url,
+          content: result[0].url,
           role: 'assistant',
           timestamp: Date.now(),
         }
