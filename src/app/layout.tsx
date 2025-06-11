@@ -1,7 +1,8 @@
 import '@radix-ui/themes/styles.css'
-import { Theme } from '@radix-ui/themes'
+import { Theme, Flex } from '@radix-ui/themes'
 import type { Metadata } from 'next'
 import './globals.css'
+import { Sidebar } from '@/components/Sidebar'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -18,12 +19,15 @@ export default function RootLayout({
       <body>
         <Theme
           appearance='light'
-          accentColor='blue'
+          accentColor='iris'
           grayColor='slate'
           scaling='100%'
           radius='medium'
         >
-          {children}
+          <Flex>
+            <Sidebar />
+            <main style={{ width: '100%' }}>{children}</main>
+          </Flex>
         </Theme>
       </body>
     </html>

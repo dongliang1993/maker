@@ -45,7 +45,7 @@ export default function Home() {
                 fallback='RU'
                 radius='full'
               />
-              <Avatar size='7' fallback='测试' radius='full' color='blue' />
+              <Avatar size='7' fallback='测试' radius='full' color='iris' />
             </Flex>
           </Flex>
         </Card>
@@ -98,7 +98,7 @@ export default function Home() {
           <Card size='3'>
             <Flex direction='column' gap='4'>
               <Flex gap='3' align='center'>
-                <Avatar size='3' fallback='DM' radius='full' color='blue' />
+                <Avatar size='3' fallback='DM' radius='full' color='iris' />
                 <Heading size='3'>深色模式</Heading>
               </Flex>
               <Text color='gray' size='2'>
