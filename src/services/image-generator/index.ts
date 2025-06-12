@@ -7,7 +7,7 @@ const GBIBLI_STYLE_PROMPT = `Transform this image into Studio Ghibli animation s
 export type GenerationsConfig = {
   prompt: string
   image_url: string
-  model?: 'flux-kontext-pro'
+  model: 'flux-kontext-pro'
   aspect_ratio?: string
   output_format?: 'png'
   safety_tolerance?: 2
