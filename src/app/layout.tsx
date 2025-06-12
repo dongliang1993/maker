@@ -1,10 +1,11 @@
 'use client'
 
-import '@radix-ui/themes/styles.css'
-import { ClerkProvider } from '@clerk/nextjs'
-import { Geist, Geist_Mono } from 'next/font/google'
 import Header from '@/components/header'
 import { Providers } from '@/components/Providers'
+import { ClerkProvider } from '@clerk/nextjs'
+import { Flex } from '@radix-ui/themes'
+import '@radix-ui/themes/styles.css'
+import { Geist, Geist_Mono } from 'next/font/google'
 
 import './globals.css'
 
@@ -31,7 +32,15 @@ export default function RootLayout({
         >
           <Providers>
             <Header />
-            {children}
+            <Flex
+              direction='column'
+              style={{
+                height: '100%',
+                paddingTop: '50px',
+              }}
+            >
+              {children}
+            </Flex>
           </Providers>
         </body>
       </html>

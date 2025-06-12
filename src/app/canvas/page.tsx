@@ -1,19 +1,19 @@
 'use client'
 
+import { ResizablePanel } from '@/components/ResizablePanel'
+import { useGenerationsImage, useUploadImage } from '@/lib/queries'
+import { ImageIcon, PaperPlaneIcon } from '@radix-ui/react-icons'
 import {
-  Heading,
-  Text,
+  Box,
+  Button,
   Card,
   Flex,
-  Button,
-  TextArea,
+  Heading,
   ScrollArea,
-  Box,
+  Text,
+  TextArea,
 } from '@radix-ui/themes'
-import { PaperPlaneIcon, ImageIcon } from '@radix-ui/react-icons'
-import { ResizablePanel } from '@/components/ResizablePanel'
-import { useRef, useState, useEffect } from 'react'
-import { useUploadImage, useGenerationsImage } from '@/lib/queries'
+import { useEffect, useRef, useState } from 'react'
 
 interface Message {
   id: string

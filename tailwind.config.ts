@@ -70,7 +70,7 @@ const config = {
       },
     },
   },
-  plugins: [typography, require('tailwindcss-radix')()],
+  plugins: [typography],
 } satisfies Config
 
 export default config
