@@ -1,10 +1,13 @@
+import { MessagesRepository } from './repositories/messages.repository'
 import { ProjectsRepository } from './repositories/projects.repository'
 
 export class Database {
   readonly projects: ProjectsRepository
+  readonly messages: MessagesRepository
 
   constructor() {
     this.projects = new ProjectsRepository()
+    this.messages = new MessagesRepository()
   }
 }
 

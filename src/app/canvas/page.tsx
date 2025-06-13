@@ -13,6 +13,7 @@ import {
   Text,
   TextArea,
 } from '@radix-ui/themes'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
 import { ChatBox } from '@/components/chat-box'
@@ -48,6 +49,8 @@ export default function CanvasPage() {
   const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
 
   const { mutateAsync: generationsImage } = useGenerationsImage()
+  // projectId 从 url 中获取
+  const projectId = useSearchParams().get('projectId') || ''
 
   // 初始化加载消息
   useEffect(() => {
@@ -339,7 +342,7 @@ export default function CanvasPage() {
         </ResizablePanel>
       </Flex>
 
-      <ChatBox />
+      <ChatBox projectId={projectId} />
     </Flex>
   )
 }
