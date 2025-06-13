@@ -12,6 +12,16 @@ export interface Project {
 export class ProjectsRepository extends DatabaseClient {
   private readonly table = 'projects'
 
+  async findAll({ userId }: { userId: string }): Promise<Project[]> {
+    return this.query(async (supabase) => {
+      return await supabase
+        .from(this.table)
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+    })
+  }
+
   async findUnique({
     userId,
     projectId,
@@ -30,8 +40,6 @@ export class ProjectsRepository extends DatabaseClient {
             .single()
       )
 
-      console.log('🔍 项目:', data)
-
       if (!data) {
         console.log('🔍 用户不存在')
         return null
@@ -44,14 +52,20 @@ export class ProjectsRepository extends DatabaseClient {
     }
   }
 
-  async create(project: Partial<Project>): Promise<Project> {
+  async create(
+    project: Partial<Project>
+  ): Promise<{ data: Project | null; error: unknown }> {
     return this.query(async (supabase) => {
       const { data, error } = await supabase
         .from(this.table)
         .insert(project)
         .select()
         .single()
-      return this.checkResult({ data, error })
+
+      return {
+        data,
+        error,
+      }
     })
   }
 }

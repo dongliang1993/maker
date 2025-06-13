@@ -7,32 +7,15 @@ import { getDatabase } from '@/database'
 // 获取项目列表
 export async function GET() {
   try {
-    // const session = await auth()
-    // const userId = session?.userId
-
-    // if (!userId) {
-    //   return NextResponse.json(
-    //     {
-    //       error: '未授权',
-    //       details: '请确保已登录并在请求头中包含有效的认证信息',
-    //     },
-    //     { status: 401 }
-    //   )
-    // }
-
-    const supabase = await createAdminClient()
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      // .eq('user_id', userId)
-      .order('updated_at', { ascending: false })
-
-    if (error) {
-      console.error('数据库查询错误:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    return NextResponse.json(data)
+    const db = getDatabase()
+    const result = await db.projects.findAll({ userId })
+
+    return NextResponse.json({ error: false, data: result })
   } catch (error) {
     console.error('获取项目列表失败:', error)
     return NextResponse.json(
@@ -64,16 +47,17 @@ export async function POST(request: Request) {
     }
 
     const db = getDatabase()
-
-    await db.projects.create({
+    const result = await db.projects.create({
       name,
-      description: 'there is no description',
       user_id: userId,
     })
 
-    // if (error) {
-    //   return NextResponse.json({ error: error.message }, { status: 500 })
-    // }
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
+    }
+
+    console.log('create projects ', { userId, project: result.data })
+    return NextResponse.json({ error: false, data: result.data })
 
     // return NextResponse.json(data)
   } catch (error) {

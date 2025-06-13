@@ -53,7 +53,7 @@ export class DatabaseClient {
   ): Promise<T> {
     try {
       const result = await callback(this.supabase)
-      return this.checkResult(result)
+      return result //this.checkResult(result)
     } catch (error) {
       this.handleError(error)
     }

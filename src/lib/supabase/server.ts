@@ -32,10 +32,9 @@ export async function createClient() {
 
 // 管理员客户端（使用service_role密钥）
 export function createAdminClient() {
-  console.log('🔍 创建管理员客户端:', process.env)
   return createServerClient(
     process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
         getAll() {
