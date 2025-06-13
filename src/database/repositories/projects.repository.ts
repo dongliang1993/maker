@@ -1,4 +1,5 @@
 import { DatabaseClient } from '../client'
+import { DatabaseResult } from '../types'
 
 export interface Project {
   id: string
@@ -12,13 +13,22 @@ export interface Project {
 export class ProjectsRepository extends DatabaseClient {
   private readonly table = 'projects'
 
-  async findAll({ userId }: { userId: string }): Promise<Project[]> {
+  async findAll({
+    userId,
+  }: {
+    userId: string
+  }): Promise<DatabaseResult<Project[]>> {
     return this.query(async (supabase) => {
-      return await supabase
+      const { data, error } = await supabase
         .from(this.table)
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+      }
     })
   }
 
@@ -28,33 +38,34 @@ export class ProjectsRepository extends DatabaseClient {
   }: {
     userId: string
     projectId: string
-  }): Promise<Project | null> {
+  }): Promise<DatabaseResult<Project | null>> {
     try {
-      const data: Project | null = await this.query(
-        async (supabase) =>
-          await supabase
-            .from(this.table)
-            .select('*')
-            .eq('user_id', userId)
-            .eq('id', projectId)
-            .single()
-      )
+      return this.query(async (supabase) => {
+        const { data, error } = await supabase
+          .from(this.table)
+          .select('*')
+          .eq('user_id', userId)
+          .eq('id', projectId)
+          .single()
 
-      if (!data) {
-        console.log('🔍 用户不存在')
-        return null
-      }
-
-      return data
+        return {
+          data,
+          error,
+        }
+      })
     } catch (error) {
       console.error('🚨 User findUnique error:', error)
-      return null
+      return {
+        data: null,
+        error: true,
+        message: 'User findUnique error',
+      }
     }
   }
 
   async create(
     project: Partial<Project>
-  ): Promise<{ data: Project | null; error: unknown }> {
+  ): Promise<DatabaseResult<Project | null>> {
     return this.query(async (supabase) => {
       const { data, error } = await supabase
         .from(this.table)

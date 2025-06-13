@@ -24,7 +24,11 @@ export class DatabaseClient {
   /**
    * 检查操作结果
    */
-  protected checkResult<T>(result: { data: T | null; error: unknown }): T {
+  protected checkResult<T>(result: { data: T | null; error: unknown }): {
+    data: T | null
+    error: boolean
+    message: string
+  } {
     console.log('🔍 检查操作结果:', result)
     if (result.error) {
       const message = (result.error as Error).message || '未知错误'
@@ -40,7 +44,11 @@ export class DatabaseClient {
       throw new DatabaseError('未找到数据')
     }
 
-    return result.data as T
+    return {
+      data: result.data as T,
+      error: false,
+      message: '',
+    }
   }
 
   /**
@@ -50,10 +58,11 @@ export class DatabaseClient {
     callback: (
       supabase: SupabaseClient
     ) => Promise<{ data: T | null; error: unknown }>
-  ): Promise<T> {
+  ): Promise<{ data: T | null; error: boolean; message: string }> {
     try {
       const result = await callback(this.supabase)
-      return result //this.checkResult(result)
+      console.log('🔍 查询结果:', result)
+      return this.checkResult(result)
     } catch (error) {
       this.handleError(error)
     }

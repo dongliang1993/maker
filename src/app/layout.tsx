@@ -7,7 +7,6 @@ import { Flex } from '@radix-ui/themes'
 import '@radix-ui/themes/styles.css'
 import { Geist, Geist_Mono } from 'next/font/google'
 
-import { useEffect } from 'react'
 import './globals.css'
 
 const geistSans = Geist({
@@ -25,17 +24,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  useEffect(() => {
-    // post请求
-    fetch('/api/projects', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'test',
-      }),
-    })
-    console.log('RootLayout')
-  }, [])
-
   return (
     <ClerkProvider>
       <html lang='zh-CN'>

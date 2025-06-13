@@ -1,16 +1,39 @@
+import { auth } from '@clerk/nextjs/server'
 import { PlusIcon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, Grid, Heading, Text } from '@radix-ui/themes'
+import { format } from 'date-fns'
 import Link from 'next/link'
 
-export default async function ProjectsPage() {
-  const projects = [
-    {
-      id: '1',
-      name: 'Project 1',
-      description: 'Description 1',
-    },
-  ]
+import { getDatabase } from '@/database'
 
+async function getProjects(userId: string) {
+  const db = getDatabase()
+  const result = await db.projects.findAll({ userId })
+
+  if (result.error) {
+    return []
+  }
+
+  return result.data || []
+}
+
+export default async function ProjectsPage() {
+  const { userId } = await auth()
+
+  if (!userId) {
+    // 根据你的业务逻辑，可以重定向到登录页或显示未授权信息
+    return (
+      <Box p='8'>
+        <Heading>未授权</Heading>
+        <Text>请先登录后查看您的项目。</Text>
+        <Link href='/sign-in'>登录</Link>
+      </Box>
+    )
+  }
+
+  const projects = await getProjects(userId)
+
+  console.log('projects', projects)
   return (
     <Box
       p='8'
@@ -64,10 +87,10 @@ export default async function ProjectsPage() {
                   }}
                 >
                   <Text as='p' className='text-black' size='2' weight='medium'>
-                    {project.description}
+                    {project.name}
                   </Text>
                   <Text size='1' color='gray'>
-                    最后修改于{' '}
+                    {format(project.updated_at, 'MM-dd HH:mm, yyyy')}
                   </Text>
                 </Flex>
               </Card>
