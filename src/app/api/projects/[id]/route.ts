@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    const db = getDatabase()
+    const db = getDatabase('server')
     const project = await db.projects.findById(params.id)
 
     if (!project) {
@@ -37,7 +37,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -46,7 +46,7 @@ export async function PUT(
     return NextResponse.json({ error: '未授权' }, { status: 401 })
   }
 
-  const db = getDatabase('client')
+  const db = getDatabase('server')
   const project = await db.projects.findById(params.id)
 
   if (!project) {
