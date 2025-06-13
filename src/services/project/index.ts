@@ -23,6 +23,21 @@ export async function getProject(projectId: string): Promise<Project | null> {
   }
 }
 
+export async function getProjectList(): Promise<Project[]> {
+  try {
+    const response = await fetch('/api/projects')
+    if (!response.ok) {
+      throw new Error(`获取项目列表失败: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return data.data
+  } catch (error) {
+    console.error('获取项目列表失败:', error)
+    return []
+  }
+}
+
 export async function updateProject(
   projectId: string,
   data: Partial<Project>
@@ -86,4 +101,11 @@ export const useProject = (
     updateError: mutation.error,
     reset: mutation.reset,
   }
+}
+
+export const useProjectList = () => {
+  return useQuery({
+    queryKey: ['project-list'],
+    queryFn: () => getProjectList(),
+  })
 }

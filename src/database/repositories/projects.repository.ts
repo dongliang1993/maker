@@ -78,17 +78,19 @@ export class ProjectsRepository extends DatabaseClient {
 
   async create(
     project: Omit<Project, 'id' | 'created_at' | 'updated_at'>
-  ): Promise<Project | null> {
-    const result = await this.query(
-      async (supabase) =>
-        await supabase.from(this.table).insert(project).select().single()
-    )
+  ): Promise<DatabaseResult<Project | null>> {
+    return this.query(async (supabase) => {
+      const { data, error } = await supabase
+        .from(this.table)
+        .insert(project)
+        .select()
+        .single()
 
-    if (!result?.data) {
-      return null
-    }
-
-    return result.data as Project
+      return {
+        data,
+        error,
+      }
+    })
   }
 
   async findByUser(userId: string): Promise<Project[]> {

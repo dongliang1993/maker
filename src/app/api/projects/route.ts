@@ -12,10 +12,15 @@ export async function GET() {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    const db = getDatabase()
+    const db = getDatabase('server')
     const result = await db.projects.findAll({ userId })
 
-    return NextResponse.json({ error: false, data: result })
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
+    }
+
+    console.log('get projects list', { error: false, data: result.data })
+    return NextResponse.json({ error: false, data: result.data })
   } catch (error) {
     console.error('获取项目列表失败:', error)
     return NextResponse.json(
@@ -46,10 +51,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const db = getDatabase()
+    const db = getDatabase('server')
     const result = await db.projects.create({
       name,
       user_id: userId,
+      description: '',
     })
 
     if (result.error) {
@@ -58,8 +64,6 @@ export async function POST(request: Request) {
 
     console.log('create projects ', { userId, project: result.data })
     return NextResponse.json({ error: false, data: result.data })
-
-    // return NextResponse.json(data)
   } catch (error) {
     console.error('创建项目失败:', error)
     return NextResponse.json({ error: '创建项目失败' }, { status: 500 })

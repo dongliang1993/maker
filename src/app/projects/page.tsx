@@ -1,37 +1,14 @@
-import { auth } from '@clerk/nextjs/server'
+'use client'
+
 import { PlusIcon } from '@radix-ui/react-icons'
-import { Box, Card, Flex, Grid, Heading, Text } from '@radix-ui/themes'
+import { Box, Card, Flex, Grid, Text } from '@radix-ui/themes'
 import { format } from 'date-fns'
 import Link from 'next/link'
 
-import { getDatabase } from '@/database'
+import { useProjectList } from '@/services/project'
 
-async function getProjects(userId: string) {
-  const db = getDatabase('client')
-  const result = await db.projects.findAll({ userId })
-
-  if (result.error) {
-    return []
-  }
-
-  return result.data || []
-}
-
-export default async function ProjectsPage() {
-  const { userId } = await auth()
-
-  if (!userId) {
-    // 根据你的业务逻辑，可以重定向到登录页或显示未授权信息
-    return (
-      <Box p='8'>
-        <Heading>未授权</Heading>
-        <Text>请先登录后查看您的项目。</Text>
-        <Link href='/sign-in'>登录</Link>
-      </Box>
-    )
-  }
-
-  const projects = await getProjects(userId)
+export default function ProjectsPage() {
+  const { data: projects } = useProjectList()
 
   console.log('projects', projects)
   return (
@@ -67,7 +44,7 @@ export default async function ProjectsPage() {
           </Link>
 
           {/* 项目列表 */}
-          {projects.map((project) => (
+          {projects?.map((project) => (
             <Link
               key={project.id}
               href={`/canvas?projectId=${project.id}`}
