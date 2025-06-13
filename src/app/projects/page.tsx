@@ -2,23 +2,15 @@ import { PlusIcon } from '@radix-ui/react-icons'
 import { Box, Card, Flex, Grid, Heading, Text } from '@radix-ui/themes'
 import Link from 'next/link'
 
-// 模拟项目数据
-const projects = [
-  {
-    id: 1,
-    name: 'transform-images',
-    description: '图片转换工具',
-    lastModified: '2024-01-11',
-  },
-  {
-    id: 2,
-    name: 'my-project',
-    description: '个人项目',
-    lastModified: '2024-01-10',
-  },
-]
+export default async function ProjectsPage() {
+  const projects = [
+    {
+      id: '1',
+      name: 'Project 1',
+      description: 'Description 1',
+    },
+  ]
 
-export default function ProjectsPage() {
   return (
     <Box
       p='8'
@@ -75,7 +67,7 @@ export default function ProjectsPage() {
                     {project.description}
                   </Text>
                   <Text size='1' color='gray'>
-                    最后修改于 {project.lastModified}
+                    最后修改于{' '}
                   </Text>
                 </Flex>
               </Card>
