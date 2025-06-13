@@ -14,7 +14,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
 
   return (
     <ScrollArea
-      style={{ height: 'calc(100vh - 260px)' }}
+      // style={{ height: 'calc(100vh - 260px)' }}
       scrollbars='vertical'
       type='hover'
     >
@@ -55,6 +55,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
                     src={msg.image_url}
                     radius='medium'
                     fallback='IMG'
+                    className='cursor-pointer hover:scale-110 transition-all duration-300'
                   />
                 </Box>
               )}

@@ -53,7 +53,7 @@ export function ResizablePanel({
   }, [isResizing, resize, stopResizing])
 
   return (
-    <Flex style={{ position: 'relative', width }}>
+    <Flex style={{ position: 'relative', width }} className='max-w-1/3'>
       <div
         style={{
           position: 'absolute',
