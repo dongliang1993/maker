@@ -74,7 +74,7 @@ export default async function ProjectsPage() {
           {projects.map((project) => (
             <Link
               key={project.id}
-              href='/canvas'
+              href={`/canvas?projectId=${project.id}`}
               style={{ textDecoration: 'none' }}
             >
               <Card size='2' className='hover:shadow-md'>

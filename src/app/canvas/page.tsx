@@ -15,6 +15,8 @@ import {
 } from '@radix-ui/themes'
 import { useEffect, useRef, useState } from 'react'
 
+import { ChatBox } from '@/components/chat-box'
+
 interface Message {
   id: string
   type: 'text' | 'image'
@@ -336,6 +338,8 @@ export default function CanvasPage() {
           </Flex>
         </ResizablePanel>
       </Flex>
+
+      <ChatBox />
     </Flex>
   )
 }
