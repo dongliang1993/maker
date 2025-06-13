@@ -14,6 +14,14 @@ const nextConfig = {
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'fal.media',
+      },
+    ],
+  },
 }
 
 export default nextConfig

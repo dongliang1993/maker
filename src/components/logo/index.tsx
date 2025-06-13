@@ -1,8 +1,11 @@
 import Image from 'next/image'
 
+import { cn } from '@/lib/utils'
+
 type LogoProps = {
   className?: string
   size?: 1 | 2 | 3
+  hideText?: boolean
 }
 
 const sizeMap = {
@@ -17,12 +20,12 @@ const textSizeMap = {
   3: 22,
 }
 
-export const Logo = ({ size = 3 }: LogoProps) => {
+export const Logo = ({ size = 3, hideText = false, className }: LogoProps) => {
   const sizeValue = sizeMap[size]
   const textSize = textSizeMap[size]
 
   return (
-    <>
+    <div className={cn('inline-flex items-center', className)}>
       <Image
         src='/icons/lightning.svg'
         alt='Maker'
@@ -30,7 +33,9 @@ export const Logo = ({ size = 3 }: LogoProps) => {
         height={sizeValue}
         className='rounded'
       />
-      <span className={`ml-2 text-[${textSize}px] font-bold`}>Maker</span>
-    </>
+      {!hideText && (
+        <span className={`ml-2 text-[${textSize}px] font-bold`}>Maker</span>
+      )}
+    </div>
   )
 }

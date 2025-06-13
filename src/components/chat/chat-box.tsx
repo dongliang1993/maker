@@ -1,16 +1,21 @@
+import { ArrowUpIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
-  ArrowUpIcon,
-  Component1Icon,
-  GlobeIcon,
-  Link2Icon,
-} from '@radix-ui/react-icons'
-import { Avatar, Box, Flex, IconButton, TextArea } from '@radix-ui/themes'
+  Avatar,
+  Badge,
+  Box,
+  Flex,
+  IconButton,
+  TextArea,
+} from '@radix-ui/themes'
 import React, { useState } from 'react'
 
+import StylePick from './style-pick'
 import UploadIcon from './upload-icon'
 
 import { useUploadImage } from '@/services/file'
 import { useSendMessage } from '@/services/message'
+
+import type { Style } from '@/constants/preset-styles'
 
 interface ChatBoxProps {
   projectId: string
@@ -19,6 +24,7 @@ interface ChatBoxProps {
 export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   const [input, setInput] = useState('')
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined)
+  const [style, setStyle] = useState<Style | null>(null)
 
   const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
@@ -69,6 +75,48 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
     })
   }
 
+  // 选择风格
+  const handleStylePick = (style: Style | null) => {
+    setStyle(style)
+  }
+
+  const renderStyle = () => {
+    if (style) {
+      return (
+        <div className='relative cursor-pointer'>
+          <Avatar size='5' src={style.url} radius='medium' fallback='IMG' />
+          <Badge
+            variant='solid'
+            className='absolute bottom-0 right-0'
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            {style.name}
+          </Badge>
+          <IconButton
+            size='1'
+            variant='ghost'
+            color='gray'
+            style={{
+              padding: 0,
+              position: 'absolute',
+              top: '6px',
+              right: '6px',
+            }}
+            onClick={() => setStyle(null)}
+          >
+            <Cross2Icon
+              width='18'
+              height='18'
+              className='hover:bg-gray-300 rounded-md cursor-pointer'
+            />
+          </IconButton>
+        </div>
+      )
+    }
+  }
+
   return (
     <Box
       style={{
@@ -82,6 +130,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
         {/* 图片列表 */}
         <Flex direction='column' gap='3'>
           <Flex direction='row' gap='3'>
+            {renderStyle()}
             {imageUrl && (
               <Avatar size='5' src={imageUrl} radius='medium' fallback='IMG' />
             )}
@@ -103,16 +152,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
               onImageUpload={handleImageUpload}
               isUploading={isUploading}
             />
-            <IconButton
-              size='2'
-              radius='full'
-              variant='outline'
-              color='gray'
-              style={{ cursor: 'pointer' }}
-            >
-              <Link2Icon width='18' height='18' />
-            </IconButton>
-            <IconButton
+            <StylePick onStylePick={handleStylePick} />
+            {/* <IconButton
               size='2'
               radius='full'
               variant='outline'
@@ -120,8 +161,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
               style={{ cursor: 'pointer' }}
             >
               <GlobeIcon width='18' height='18' />
-            </IconButton>
-            <IconButton
+            </IconButton> */}
+            {/* <IconButton
               size='2'
               radius='full'
               variant='outline'
@@ -129,7 +170,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
               style={{ cursor: 'pointer' }}
             >
               <Component1Icon width='18' height='18' />
-            </IconButton>
+            </IconButton> */}
           </Flex>
           <IconButton
             size='2'
