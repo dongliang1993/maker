@@ -45,10 +45,6 @@ export default async function ProjectsPage() {
       }}
     >
       <Flex direction='column' gap='6'>
-        <Flex justify='between' align='center'>
-          <Heading size='7'>Projects</Heading>
-        </Flex>
-
         <Grid columns={{ initial: '1', sm: '3', lg: '4' }} gap='4'>
           {/* 新建项目卡片 */}
           <Link href='/canvas' style={{ textDecoration: 'none' }}>

@@ -1,14 +1,19 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 
+import { createClient } from '@/lib/supabase/client'
 import { createAdminClient } from '@/lib/supabase/server'
 
-import { DatabaseError } from './types'
+import { DatabaseError, DatabaseType } from './types'
 
 export class DatabaseClient {
   protected supabase: SupabaseClient
 
-  constructor() {
-    this.supabase = createAdminClient()
+  constructor({ type }: { type: DatabaseType }) {
+    if (type === 'client') {
+      this.supabase = createClient()
+    } else {
+      this.supabase = createAdminClient()
+    }
   }
 
   /**

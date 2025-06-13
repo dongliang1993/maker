@@ -11,3 +11,5 @@ export interface DatabaseResult<T> {
   error: boolean
   message?: string
 }
+
+export type DatabaseType = 'client' | 'server'

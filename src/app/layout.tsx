@@ -6,6 +6,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Flex } from '@radix-ui/themes'
 import '@radix-ui/themes/styles.css'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { usePathname } from 'next/navigation'
 
 import './globals.css'
 
@@ -24,6 +25,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isCanvasRoute = pathname?.startsWith('/canvas')
+
   return (
     <ClerkProvider>
       <html lang='zh-CN'>
@@ -31,12 +35,12 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <Providers>
-            <Header />
+            {!isCanvasRoute && <Header />}
             <Flex
               direction='column'
               style={{
                 height: '100%',
-                paddingTop: '50px',
+                paddingTop: isCanvasRoute ? 0 : '50px',
               }}
             >
               {children}
