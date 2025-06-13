@@ -1,4 +1,6 @@
+export type { Message } from './repositories/messages.repository'
 export type { Project } from './repositories/projects.repository'
+
 export class DatabaseError extends Error {
   constructor(message: string, public code?: string) {
     super(message)

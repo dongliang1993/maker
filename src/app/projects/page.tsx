@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { getDatabase } from '@/database'
 
 async function getProjects(userId: string) {
-  const db = getDatabase()
+  const db = getDatabase('client')
   const result = await db.projects.findAll({ userId })
 
   if (result.error) {

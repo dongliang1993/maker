@@ -16,18 +16,16 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
   const projectId = searchParams.get('projectId')
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const handleUpdateProject = async (name: string) => {
     if (!projectId) {
-      setError('项目ID不能为空')
       return
     }
 
     const db = getDatabase('client')
     const { error, message } = await db.projects.update(projectId, { name })
     if (error) {
-      setError(message ?? '更新项目失败')
+      console.error(message)
       return
     }
     setProject({ ...project, name } as Project)
@@ -36,7 +34,6 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
   useEffect(() => {
     async function loadProject() {
       if (!projectId) {
-        setError('项目ID不能为空')
         setIsLoading(false)
         return
       }
@@ -45,13 +42,10 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
         const db = getDatabase('client')
         const projectData = await db.projects.findById(projectId)
         if (!projectData) {
-          setError('项目不存在')
         } else {
           setProject(projectData)
-          setError(null)
         }
       } catch (err) {
-        setError('加载项目失败')
         console.error('Failed to load project:', err)
       } finally {
         setIsLoading(false)

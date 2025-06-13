@@ -1,22 +1,16 @@
-import { useMessages, useSendMessage } from '@/services/message'
 import {
   ArrowUpIcon,
   Component1Icon,
   GlobeIcon,
   Link2Icon,
-  PlusIcon,
 } from '@radix-ui/react-icons'
-import {
-  Box,
-  Flex,
-  IconButton,
-  ScrollArea,
-  Text,
-  TextArea,
-} from '@radix-ui/themes'
+import { Avatar, Box, Flex, IconButton, TextArea } from '@radix-ui/themes'
 import React, { useState } from 'react'
 
-import type { Message } from '@/services/message'
+import UploadIcon from './upload-icon'
+
+import { useUploadImage } from '@/services/file'
+import { useSendMessage } from '@/services/message'
 
 interface ChatBoxProps {
   projectId: string
@@ -24,10 +18,9 @@ interface ChatBoxProps {
 
 export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   const [input, setInput] = useState('')
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined)
 
-  // 使用 React Query hooks
-  const { data: messages = [], isLoading: isLoadingMessages } =
-    useMessages(projectId)
+  const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
 
   // 处理发送消息
@@ -38,10 +31,12 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
       {
         projectId,
         content: input.trim(),
+        imageUrl,
       },
       {
         onSuccess: () => {
           setInput('')
+          setImageUrl(undefined)
         },
       }
     )
@@ -55,6 +50,24 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
     }
   }
 
+  // 处理图片上传
+  const handleImageUpload = async (file: File) => {
+    return new Promise((resolve, reject) => {
+      uploadImage(file, {
+        onSuccess: (result) => {
+          setImageUrl(result.url)
+        },
+        onError: (error) => {
+          console.error('上传图片失败:', error)
+          reject(error)
+        },
+        onSettled: () => {
+          resolve(true)
+        },
+      })
+    })
+  }
+
   return (
     <Box
       style={{
@@ -65,49 +78,14 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
       className='fixed bottom-10 rounded-xl bg-white w-2/3 left-1/2 -translate-x-1/2'
     >
       <Flex direction='column' gap='3'>
-        {/* 消息列表 */}
-        <ScrollArea
-          style={{ maxHeight: '300px' }}
-          scrollbars='vertical'
-          type='hover'
-        >
-          <Flex direction='column' gap='2'>
-            {isLoadingMessages ? (
-              <Text size='2' color='gray'>
-                加载消息中...
-              </Text>
-            ) : messages.length === 0 ? (
-              <Text size='2' color='gray'>
-                暂无消息
-              </Text>
-            ) : (
-              messages.map((msg: Message) => (
-                <Box
-                  key={msg.id}
-                  style={{
-                    padding: '8px 12px',
-                    backgroundColor: msg.role === 'user' ? '#f5f5f5' : 'white',
-                    borderRadius: '8px',
-                  }}
-                >
-                  <Text size='2'>{msg.content}</Text>
-                  {msg.image_url && (
-                    <img
-                      src={msg.image_url}
-                      alt='Message attachment'
-                      style={{
-                        maxWidth: '200px',
-                        marginTop: '8px',
-                        borderRadius: '4px',
-                      }}
-                    />
-                  )}
-                </Box>
-              ))
+        {/* 图片列表 */}
+        <Flex direction='column' gap='3'>
+          <Flex direction='row' gap='3'>
+            {imageUrl && (
+              <Avatar size='5' src={imageUrl} radius='medium' fallback='IMG' />
             )}
           </Flex>
-        </ScrollArea>
-
+        </Flex>
         {/* 输入区域 */}
         <TextArea
           placeholder='Please enter your design requirements...'
@@ -116,19 +94,14 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
           resize='none'
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
         />
         <Flex justify='between' align='center'>
           <Flex gap='2'>
-            <IconButton
-              size='2'
-              radius='full'
-              variant='outline'
-              color='gray'
-              style={{ cursor: 'pointer' }}
-            >
-              <PlusIcon width='18' height='18' />
-            </IconButton>
+            <UploadIcon
+              onImageUpload={handleImageUpload}
+              isUploading={isUploading}
+            />
             <IconButton
               size='2'
               radius='full'

@@ -17,10 +17,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: '缺少项目ID' }, { status: 400 })
     }
 
-    const db = getDatabase()
-    const messages = await db.messages.findByProject(projectId)
+    const db = getDatabase('server')
+    const { data, error, message } = await db.messages.findByProject(projectId)
 
-    return NextResponse.json(messages)
+    if (error) {
+      return NextResponse.json({ error: message }, { status: 500 })
+    }
+
+    return NextResponse.json(data ?? [])
   } catch (error) {
     console.error('获取消息失败:', error)
     return NextResponse.json(
@@ -59,7 +63,7 @@ export async function POST(request: Request) {
       role: 'user',
     })
 
-    const db = getDatabase()
+    const db = getDatabase('server')
     const message = await db.messages.create({
       user_id: userId,
       project_id: projectId,

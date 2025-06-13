@@ -1,9 +1,9 @@
-'use server'
+// 'use server'
 
 import { createServerClient } from '@supabase/ssr'
 
 // 管理员客户端（使用service_role密钥）
-export async function createAdminClient() {
+export function createAdminClient() {
   return createServerClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

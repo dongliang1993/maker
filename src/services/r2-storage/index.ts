@@ -1,3 +1,5 @@
+import { useMutation } from '@tanstack/react-query'
+
 import { r2Storage } from '@/lib/r2-storage'
 
 /**
@@ -23,8 +25,14 @@ export const r2StorageService = {
    * @param file 要上传的文件
    * @returns 上传结果，包含文件URL和存储键
    */
-  async uploadFile(file: File): Promise<UploadResult> {
-    const key = generateUniqueFileName(file.name)
+  async uploadFile({
+    key,
+    file,
+  }: {
+    key: string
+    file: File
+  }): Promise<UploadResult> {
+    key = key || generateUniqueFileName(file.name)
     const url = await r2Storage.uploadFile(key, file)
     return { url, key }
   },
@@ -54,4 +62,11 @@ export const r2StorageService = {
   getPublicUrl(key: string): string {
     return r2Storage.getPublicUrl(key)
   },
+}
+
+// React Query Hook
+export const useUploadImage = () => {
+  return useMutation({
+    mutationFn: r2StorageService.uploadFile,
+  })
 }

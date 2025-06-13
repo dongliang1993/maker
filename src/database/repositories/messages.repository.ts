@@ -1,4 +1,5 @@
 import { DatabaseClient } from '../client'
+import { DatabaseResult } from '../types'
 
 export interface Message {
   id: string
@@ -13,21 +14,16 @@ export interface Message {
 export class MessagesRepository extends DatabaseClient {
   private readonly table = 'messages'
 
-  async findByProject(projectId: string): Promise<Message[]> {
-    const result = await this.query(
-      async (supabase) =>
-        await supabase
-          .from(this.table)
-          .select('*')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: true })
-    )
+  async findByProject(projectId: string): Promise<DatabaseResult<Message[]>> {
+    return await this.query(async (supabase) => {
+      const { data, error } = await supabase
+        .from(this.table)
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true })
 
-    if (!result?.data) {
-      return []
-    }
-
-    return result.data as Message[]
+      return { data, error }
+    })
   }
 
   async create(

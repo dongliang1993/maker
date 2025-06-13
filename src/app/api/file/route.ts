@@ -1,21 +1,53 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
+
 import { r2StorageService } from '@/services/r2-storage'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
 
     if (!file) {
-      return NextResponse.json({ error: '没有找到文件' }, { status: 400 })
+      return NextResponse.json({ error: '未找到文件' }, { status: 400 })
     }
 
-    const result = await r2StorageService.uploadFile(file)
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json({ error: '只支持图片文件' }, { status: 400 })
+    }
 
-    return NextResponse.json(result)
+    // 限制文件大小（例如：5MB）
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        { error: '文件大小不能超过 5MB' },
+        { status: 400 }
+      )
+    }
+
+    const key = `${userId}/${Date.now()}-${file.name}`
+
+    const result = await r2StorageService.uploadFile({
+      key,
+      file,
+    })
+
+    return NextResponse.json({ url: result.url })
   } catch (error) {
-    console.error('上传文件失败:', error)
-    return NextResponse.json({ error: '上传文件失败' }, { status: 500 })
+    console.error('上传图片失败:', error)
+    return NextResponse.json(
+      {
+        error: '上传图片失败',
+        details: error instanceof Error ? error.message : '未知错误',
+      },
+      { status: 500 }
+    )
   }
 }
 

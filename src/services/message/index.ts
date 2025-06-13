@@ -1,48 +1,54 @@
-import type { Message } from '@/database/repositories/messages.repository'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-// API 调用函数
-const fetchMessages = async (projectId: string): Promise<Message[]> => {
-  const response = await fetch(`/api/messages?projectId=${projectId}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch messages')
-  }
-  return response.json()
-}
+import type { Message } from '@/database/types'
 
-const sendMessage = async ({
-  projectId,
-  content,
-  imageUrl,
-}: {
-  projectId: string
-  content: string
-  imageUrl?: string
-}): Promise<Message> => {
-  const response = await fetch('/api/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      projectId,
-      content,
-      imageUrl,
-    }),
-  })
+export type { Message }
 
-  if (!response.ok) {
-    throw new Error('Failed to send message')
+class MessageService {
+  static async fetchMessages(projectId: string): Promise<Message[]> {
+    const response = await fetch(`/api/messages?projectId=${projectId}`)
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch messages')
+    }
+
+    return response.json()
   }
 
-  return response.json()
+  static async sendMessage({
+    projectId,
+    content,
+    imageUrl,
+  }: {
+    projectId: string
+    content: string
+    imageUrl?: string
+  }): Promise<Message> {
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        content,
+        imageUrl,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to send message')
+    }
+
+    return response.json()
+  }
 }
 
 // React Query Hooks
 export const useMessages = (projectId: string) => {
   return useQuery({
     queryKey: ['messages', projectId],
-    queryFn: () => fetchMessages(projectId),
+    queryFn: () => MessageService.fetchMessages(projectId),
     staleTime: 30 * 1000, // 数据在 30 秒内被认为是新鲜的
     refetchInterval: 30 * 1000, // 每 30 秒自动重新获取
   })
@@ -52,7 +58,7 @@ export const useSendMessage = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: sendMessage,
+    mutationFn: MessageService.sendMessage,
     // 乐观更新：立即更新 UI，不等待服务器响应
     onMutate: async ({ projectId, content, imageUrl }) => {
       // 取消任何正在进行的重新获取
@@ -98,9 +104,6 @@ export const useSendMessage = () => {
     },
   })
 }
-
-// 消息类型
-export type { Message }
 
 // 常量
 export const MESSAGE_QUERY_KEY = {
