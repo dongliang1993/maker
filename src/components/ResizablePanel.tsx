@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
 import { Flex } from '@radix-ui/themes'
+import { useCallback, useEffect, useState } from 'react'
 
 interface ResizablePanelProps {
   children: React.ReactNode
@@ -12,9 +12,9 @@ interface ResizablePanelProps {
 
 export function ResizablePanel({
   children,
-  defaultWidth = 400,
-  minWidth = 280,
-  maxWidth = 800,
+  defaultWidth = 480,
+  minWidth = 320,
+  maxWidth = 600,
 }: ResizablePanelProps) {
   const [width, setWidth] = useState(defaultWidth)
   const [isResizing, setIsResizing] = useState(false)

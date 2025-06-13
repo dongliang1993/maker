@@ -17,7 +17,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
         scrollbars='vertical'
         type='hover'
       >
-        <Flex direction='column' gap='2'>
+        <Flex direction='column' gap='5'>
           {isLoadingMessages ? (
             <Text size='2' color='gray'>
               加载消息中...
@@ -30,13 +30,26 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
             messages.map((msg: Message) => (
               <Box
                 key={msg.id}
+                className='rounded-md py-3 px-4'
                 style={{
-                  padding: '8px 12px',
-                  backgroundColor: msg.role === 'user' ? '#f5f5f5' : 'white',
-                  borderRadius: '8px',
+                  background:
+                    msg.role === 'user'
+                      ? 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)'
+                      : 'white',
                 }}
               >
-                <Text size='2'>{msg.content}</Text>
+                <Text
+                  size='2'
+                  className='cursor-text'
+                  style={{
+                    color: '#2f3640',
+                    fontSize: '16px',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {msg.content}
+                </Text>
                 {msg.image_url && (
                   <Box style={{ marginTop: '8px' }}>
                     <Avatar
