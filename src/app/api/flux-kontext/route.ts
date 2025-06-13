@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { FluxKontextService } from '@/lib/flux-kontext'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()

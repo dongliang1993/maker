@@ -1,6 +1,15 @@
-import { getDatabase } from '@/database'
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+import { getDatabase } from '@/database'
+import { imageGenerator } from '@/services/image-generator'
+
+const messageSchema = z.object({
+  projectId: z.string(),
+  content: z.string(),
+  imageUrl: z.string().optional(),
+})
 
 // 获取项目的消息列表
 export async function GET(request: Request) {
@@ -46,39 +55,87 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { projectId, content, imageUrl } = body
-
-    if (!projectId || !content) {
-      return NextResponse.json(
-        { error: '项目ID和消息内容不能为空' },
-        { status: 400 }
-      )
-    }
-
-    console.log('创建消息参数:', {
-      user_id: userId,
-      project_id: projectId,
-      content,
-      image_url: imageUrl,
-      role: 'user',
-    })
-
     const db = getDatabase('server')
-    const message = await db.messages.create({
-      user_id: userId,
-      project_id: projectId,
-      content,
-      image_url: imageUrl,
-      role: 'user',
-    })
 
-    if (!message) {
-      console.error('消息创建失败: 返回空消息')
-      return NextResponse.json({ error: '消息创建失败' }, { status: 500 })
+    const { projectId, content, imageUrl } = messageSchema.parse(body)
+    let finalImageUrl = imageUrl
+
+    if (finalImageUrl) {
+      // 创建用户消息
+      await db.messages.create({
+        user_id: userId,
+        project_id: projectId,
+        content,
+        image_url: finalImageUrl,
+        role: 'user',
+      })
+    } else {
+      // 如果 imageUrl 为空，寻找上一条消息的图片
+      const db = getDatabase('server')
+      const { data, error, message } = await db.messages.findByProject(
+        projectId
+      )
+
+      if (error || !data) {
+        return NextResponse.json({ error: message }, { status: 500 })
+      }
+
+      // 从后往前遍历消息，找到第一条有图片的消息
+      for (let i = data.length - 1; i >= 0; i--) {
+        const message = data[i]
+        if (message.image_url) {
+          finalImageUrl = message.image_url
+          break
+        }
+      }
     }
 
-    console.log('消息创建成功:', message)
-    return NextResponse.json(message)
+    if (!finalImageUrl) {
+      return NextResponse.json({ error: '没有找到图片' }, { status: 400 })
+    }
+
+    // 如果有图片，调用 Flux API
+    try {
+      // 添加处理中的消息
+      await db.messages.create({
+        user_id: userId,
+        project_id: projectId,
+        content: '正在处理图片，请稍候...',
+        role: 'assistant',
+      })
+
+      // 调用 Flux API
+      const { data } = await imageGenerator.generations({
+        prompt: content,
+        image_url: finalImageUrl,
+        model: 'flux-kontext-pro',
+      })
+
+      if (data.length > 0) {
+        // 添加生成的图片消息
+        await db.messages.create({
+          user_id: userId,
+          project_id: projectId,
+          content: '图片生成完成',
+          image_url: data[0].url,
+          role: 'assistant',
+        })
+      } else {
+        throw new Error('生成的图片 URL 为空')
+      }
+    } catch (error) {
+      console.error('图片处理错误:', error)
+      // 添加错误消息
+      await db.messages.create({
+        user_id: userId,
+        project_id: projectId,
+        content:
+          error instanceof Error ? error.message : '图片处理失败，请重试',
+        role: 'assistant',
+      })
+    }
+
+    return NextResponse.json({ message: '图片处理成功' })
   } catch (error) {
     console.error('创建消息失败:', error)
     return NextResponse.json(

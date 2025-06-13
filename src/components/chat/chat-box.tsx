@@ -27,6 +27,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   const handleSendMessage = () => {
     if (!input.trim() || isSending) return
 
+    setInput('')
+
     sendMessage(
       {
         projectId,
@@ -35,7 +37,6 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
       },
       {
         onSuccess: () => {
-          setInput('')
           setImageUrl(undefined)
         },
       }
