@@ -40,6 +40,30 @@ const getMessages = async (projectId: string) => {
     throw new Error('获取消息失败')
   }
 
+  // 检查响应的 Content-Type
+  const contentType = response.headers.get('Content-Type')
+
+  if (contentType?.includes('text/event-stream')) {
+    if (!response.body) {
+      throw new Error('没有响应数据')
+    }
+
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+
+    let result = ''
+
+    while (true) {
+      const { done, value } = await reader?.read()
+      if (done) break
+      const chunk = decoder.decode(value, { stream: true })
+      result += chunk
+      console.log(chunk)
+    }
+
+    return result
+  }
+
   return response.json()
 }
 
@@ -61,7 +85,7 @@ export const useSendMessage = () => {
       ])
 
       // 乐观地更新缓存
-      const optimisticMessage: Message = {
+      const optimisticUserMessage: Message = {
         id: `temp-${Date.now()}`,
         project_id: projectId,
         content,
@@ -71,9 +95,22 @@ export const useSendMessage = () => {
         created_at: new Date().toISOString(),
       }
 
+      const optimisticAssistantMessage: Message = {
+        id: `temp-loading-${Date.now()}`,
+        project_id: projectId,
+        content: '正在思考中...',
+        role: 'assistant',
+        user_id: '',
+        created_at: new Date().toISOString(),
+      }
+
       queryClient.setQueryData<Message[]>(
         ['messages', projectId],
-        (old = []) => [...old, optimisticMessage]
+        (old = []) => [
+          ...old,
+          optimisticUserMessage,
+          optimisticAssistantMessage,
+        ]
       )
 
       return { previousMessages }

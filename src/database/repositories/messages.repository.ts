@@ -51,4 +51,21 @@ export class MessagesRepository extends DatabaseClient {
 
     return result.data as Message
   }
+
+  async upsertMany(
+    messages: Array<Omit<Message, 'id' | 'created_at'>>
+  ): Promise<DatabaseResult<Message[]>> {
+    return await this.query(async (supabase) => {
+      const { data, error } = await supabase
+        .from(this.table)
+        .upsert(messages)
+        .select()
+
+      if (error) {
+        console.error('批量创建消息失败:', error)
+      }
+
+      return { data, error }
+    })
+  }
 }
