@@ -2,7 +2,7 @@ import { type UseChatOptions, useChat as useChatAiSdk } from '@ai-sdk/react'
 import { useContext, useEffect, useRef } from 'react'
 import { ChatStoreApi, ChatStoreContext, createChatStore } from './store'
 
-export type ChatStoreProviderProps = {
+export type ChatProviderProps = {
   children: React.ReactNode
 }
 
@@ -21,10 +21,10 @@ const ChatController = (options: UseChatOptions) => {
   return null
 }
 
-export const ChatStoreProvider = ({
+export const ChatProvider = ({
   children,
   ...options
-}: ChatStoreProviderProps & UseChatOptions) => {
+}: ChatProviderProps & UseChatOptions) => {
   const storeRef = useRef<ChatStoreApi | null>(null)
 
   if (storeRef.current === null) {

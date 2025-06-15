@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { ChatBox, ChatList } from '@/components/chat'
-import { ChatStoreProvider } from '@/lib/use-chat/provider'
+import { ChatProvider } from '@/lib/use-chat'
 import { getInitialMessages } from '@/services/message'
 import { type UseChatOptions } from '@ai-sdk/react'
 
@@ -47,7 +47,7 @@ export default function CanvasPage() {
   }, [projectId])
 
   return (
-    <ChatStoreProvider {...options}>
+    <ChatProvider {...options}>
       <Flex
         direction='row'
         width='100%'
@@ -88,11 +88,11 @@ export default function CanvasPage() {
             direction='column'
             className='px-6 pt-2 pb-14 border-l border-gray-200 h-full w-full'
           >
-            <ChatList projectId={projectId} />
+            <ChatList loading={loading} />
           </Flex>
         </ResizablePanel>
       </Flex>
       <ChatBox projectId={projectId} />
-    </ChatStoreProvider>
+    </ChatProvider>
   )
 }

@@ -4,20 +4,21 @@ import {
   Container,
   Flex,
   ScrollArea,
+  Spinner,
   Text,
 } from '@radix-ui/themes'
 import { useEffect } from 'react'
 
 import { Logo } from '@/components/logo'
 import { useChatStore } from '@/lib/use-chat'
-import { Message, getInitialMessages } from '@/services/message'
+import { Message } from '@/services/message'
 
 type ChatListProps = {
-  projectId: string
+  projectId?: string
+  loading: boolean
 }
 
-export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
-  const isLoading = false
+export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
   // const { data: messages = [] } = useMessages(projectId)
   const messages = useChatStore((state) => state.messages)
 
@@ -206,12 +207,6 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
   }
 
   useEffect(() => {
-    getInitialMessages(projectId).then((messages) => {
-      console.log(messages, 'messages')
-    })
-  }, [projectId])
-
-  useEffect(() => {
     // 聊天框滚动到最底部
     const chatList = document.getElementById('chat-list')
 
@@ -227,6 +222,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
       scrollbars='vertical'
       type='hover'
       id='chat-list'
+      className='relative'
       style={{
         // @ts-expect-error 忽略类型错误
         '--radix-scroll-area-thumb-width': '0px',
@@ -235,10 +231,15 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
       }}
     >
       <Flex direction='column' gap='5'>
-        {isLoading ? (
-          <Text size='2' color='gray'>
-            加载消息中...
-          </Text>
+        {loading ? (
+          <Flex
+            justify='center'
+            align='center'
+            height='100%'
+            className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+          >
+            <Spinner size='3' />
+          </Flex>
         ) : messages.length === 0 ? (
           <Text size='2' color='gray'>
             暂无消息
