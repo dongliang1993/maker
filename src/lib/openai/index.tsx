@@ -7,7 +7,10 @@ import {
   StreamTextOnStepFinishCallback,
   ToolSet,
 } from 'ai'
+
 const BASE_API = 'https://api.tu-zi.com/v1'
+
+import type { ImageList, StyleList } from '@/types/project'
 
 const openai = createOpenAI({
   apiKey: 'sk-p1W07xlEK1cQEmBceRf4jyJHcW35MGsRIgPOEf4V4DBnfeCj',
@@ -24,7 +27,7 @@ export type Completion = {
   content: string
 }
 
-export class GPTService {
+export class OpenAI {
   // 尝试获取用户意图
   // 返回值： '图片生成' | '图片编辑' | '其他'
   static async tryGetUserIntent(prompt: string) {
@@ -45,38 +48,6 @@ export class GPTService {
     })
 
     return text
-
-    // const response = await api({
-    //   method: 'POST',
-    //   url: `/v1/chat/completions`,
-    //   data: {
-    //     max_tokens: 0,
-    //     prompt,
-    //     model: 'gpt-4o-mini',
-    //     temperature: 1,
-    //     messages: [
-    //       {
-    //         role: 'system',
-    //         content: `你是一个意图识别专家，判断用户的输入意图。用户的输入可能很随机，有可能是想要通过文字描述'生成图片'或者'图片编辑'，也有可能是聊天。请根据用户输入的意图，返回一个意图识别结果。返回的结果 只能为'generation','edit','other'其中一个`,
-    //       },
-    //       {
-    //         role: 'user',
-    //         content: prompt,
-    //       },
-    //     ],
-    //     stream: false,
-    //     group: 'default',
-    //   },
-    //   headers: {
-    //     Authorization: `sk-p1W07xlEK1cQEmBceRf4jyJHcW35MGsRIgPOEf4V4DBnfeCj`,
-    //   },
-    // }).then((res) => res.data)
-
-    // const { choices } = response
-    // const { message } = choices[0]
-    // const { content } = message
-
-    // return content as UserIntent
   }
 
   static async completions({
@@ -112,39 +83,66 @@ export class GPTService {
     })
 
     return result
+  }
 
-    // const response = await api({
-    //   method: 'POST',
-    //   url: `/v1/chat/completions`,
-    //   data: {
-    //     prompt,
-    //     max_tokens: 0,
-    //     model: 'gpt-4o-mini',
-    //     group: 'default',
-    //     temperature: 1,
-    //     messages: [
-    //       {
-    //         role: 'system',
-    //         content:
-    //           'You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.',
-    //       },
-    //       {
-    //         role: 'user',
-    //         content: prompt,
-    //       },
-    //     ],
-    //     stream: true,
-    //   },
-    // }).then((res) => res.data)
+  static transformMessagesToPrompt({
+    userPrompt,
+    imageList,
+    styleList,
+  }: {
+    userPrompt: string
+    imageList: ImageList
+    styleList: StyleList
+  }) {
+    let finalPrompt = `Here is the user prompt: ${userPrompt}`
 
-    // const { choices } = response
-    // return choices?.map((choice: any) => {
-    //   const { message } = choice
-    //   const { content, role } = message
-    //   return {
-    //     role,
-    //     content,
-    //   } as Completion
-    // })
+    if (imageList.length > 0) {
+      finalPrompt += `\nAnd There is a user uploaded image: ${imageList[0]?.imageUrl}`
+    }
+
+    if (styleList.length > 0) {
+      finalPrompt += `\nUser also uploaded a reference image: ${styleList[0]?.styleCoverUrl}. You can use the style of the reference image to generate the image. \nThe style is: ${styleList[0]?.imagePrompt}`
+    }
+
+    return finalPrompt
+  }
+
+  static async generateImage({
+    prompt: userPrompt,
+    imageList,
+    styleList,
+  }: {
+    prompt: string
+    imageList: ImageList
+    styleList: StyleList
+  }) {
+    const prompt = this.transformMessagesToPrompt({
+      userPrompt,
+      imageList,
+      styleList,
+    })
+
+    const response = await fetch(`${BASE_API}/images/generations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer sk-p1W07xlEK1cQEmBceRf4jyJHcW35MGsRIgPOEf4V4DBnfeCj`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt,
+        n: 1,
+        response_format: 'url',
+      }),
+    }).then((res) => res.json())
+
+    const images = response.data.map((item: { url: string }) => ({
+      imageUrl: item.url,
+      source: 'gpt-image-1',
+    }))
+
+    return {
+      images,
+    }
   }
 }

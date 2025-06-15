@@ -20,6 +20,7 @@ export class DatabaseClient {
    * 处理数据库错误
    */
   private handleError(error: unknown): never {
+    console.error(error)
     if (error instanceof Error) {
       throw new DatabaseError(error.message)
     }

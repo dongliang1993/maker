@@ -16,7 +16,6 @@ import UploadIcon from './upload-icon'
 
 import { useChat } from '@/lib/use-chat'
 import { useUploadImage } from '@/services/file'
-import { useSendMessage } from '@/services/message'
 
 import type { Style } from '@/constants/preset-styles'
 
@@ -27,42 +26,37 @@ interface ChatBoxProps {
 export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined)
   const [style, setStyle] = useState<Style | null>(null)
-  const { input, handleInputChange, handleSubmit } = useChat()
+  const { input, handleInputChange, handleSubmit, isLoading } = useChat()
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e)
   }
 
   const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
-  const { mutate: sendMessage, isPending: isSending } = useSendMessage()
 
   // 处理发送消息
   const handleSendMessage = () => {
-    if (!input.trim() || isSending) return
+    if (!input.trim() || isLoading) return
     handleSubmit(
       {},
       {
         data: JSON.stringify({
           projectId,
-          imageUrl,
-          content: input.trim(),
+          imageList: imageUrl ? [{ imageUrl }] : [],
+          text: input.trim(),
+          styleList: style
+            ? [
+                {
+                  styleCoverUrl: style.url,
+                  imagePrompt: style.prompt,
+                  styleName: style.name,
+                },
+              ]
+            : [],
         }),
         allowEmptySubmit: false,
       }
     )
-
-    // sendMessage(
-    //   {
-    //     projectId,
-    //     content: input.trim(),
-    //     imageUrl,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       setImageUrl(undefined)
-    //     },
-    //   }
-    // )
   }
 
   // 处理按键事件
@@ -169,31 +163,13 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
               isUploading={isUploading}
             />
             <StylePick onStylePick={handleStylePick} />
-            {/* <IconButton
-              size='2'
-              radius='full'
-              variant='outline'
-              color='gray'
-              style={{ cursor: 'pointer' }}
-            >
-              <GlobeIcon width='18' height='18' />
-            </IconButton> */}
-            {/* <IconButton
-              size='2'
-              radius='full'
-              variant='outline'
-              color='gray'
-              style={{ cursor: 'pointer' }}
-            >
-              <Component1Icon width='18' height='18' />
-            </IconButton> */}
           </Flex>
           <IconButton
             size='2'
             radius='large'
             variant='soft'
             onClick={handleSendMessage}
-            disabled={isSending || !input.trim()}
+            disabled={!input.trim()}
           >
             <ArrowUpIcon width='20' height='20' />
           </IconButton>

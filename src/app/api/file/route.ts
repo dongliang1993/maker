@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     // 限制文件大小（例如：5MB）
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const maxSize = 10 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: '文件大小不能超过 5MB' },

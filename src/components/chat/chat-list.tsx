@@ -10,8 +10,7 @@ import {
 import { useEffect } from 'react'
 
 import { Logo } from '@/components/logo'
-import { useChatStore } from '@/lib/use-chat'
-import { Message } from '@/services/message'
+import { UIMessage, useChatStore } from '@/lib/use-chat'
 
 type ChatListProps = {
   projectId?: string
@@ -19,106 +18,16 @@ type ChatListProps = {
 }
 
 export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
-  // const { data: messages = [] } = useMessages(projectId)
   const messages = useChatStore((state) => state.messages)
+  const isLoading = useChatStore((state) => state.isLoading)
 
   console.log(messages, 'messages')
 
   const messagesLength = messages.length
 
-  const renderMessage = (msg: Message) => {
-    if (msg.role === 'assistant') {
-      const isLoading = msg.id.startsWith('temp-loading-')
-
-      return (
-        <Container key={msg.id}>
-          <Logo size={2} className='mb-2' />
-          <Box
-            className='rounded-md py-3 px-4'
-            style={{
-              background: 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
-            }}
-          >
-            <Text
-              size='2'
-              className={`cursor-text ${isLoading ? 'animate-pulse' : ''}`}
-              style={{
-                color: '#2f3640',
-                fontSize: '16px',
-                wordBreak: 'break-word',
-                whiteSpace: 'pre-wrap',
-              }}
-            >
-              {isLoading ? (
-                <div className='flex items-center space-x-1'>
-                  <span>思考中</span>
-                  <span className='animate-bounce'>.</span>
-                  <span
-                    className='animate-bounce'
-                    style={{ animationDelay: '200ms' }}
-                  >
-                    .
-                  </span>
-                  <span
-                    className='animate-bounce'
-                    style={{ animationDelay: '400ms' }}
-                  >
-                    .
-                  </span>
-                </div>
-              ) : (
-                msg.content
-              )}
-            </Text>
-            {msg.image_url && (
-              <Box style={{ marginTop: '8px' }}>
-                <Avatar
-                  size='7'
-                  src={msg.image_url}
-                  radius='medium'
-                  fallback='IMG'
-                  className='cursor-pointer hover:scale-110 transition-all duration-300'
-                />
-              </Box>
-            )}
-          </Box>
-        </Container>
-      )
-    }
-
-    return (
-      <div className='flex justify-end w-full' key={msg.id}>
-        <div className='rounded-md py-3 px-4 bg-[#4A535F] text-white'>
-          <Text
-            size='2'
-            className='cursor-text'
-            style={{
-              fontSize: '16px',
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
-            {msg.content}
-          </Text>
-          {msg.image_url && (
-            <Box style={{ marginTop: '8px' }}>
-              <Avatar
-                size='7'
-                src={msg.image_url}
-                radius='medium'
-                fallback='IMG'
-                className='cursor-pointer hover:scale-110 transition-all duration-300'
-              />
-            </Box>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  const renderUIMessage = (msg) => {
+  const renderUIMessage = (msg: UIMessage) => {
     if (msg.role !== 'user') {
-      const isLoading = msg.id.startsWith('temp-loading-')
+      const hasContent = (msg.content?.length ?? 0) > 0
 
       return (
         <Container key={msg.id}>
@@ -126,51 +35,75 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
           <Box
             className='rounded-md py-3 px-4'
             style={{
-              background: 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
+              background: hasContent
+                ? 'rgb(241, 245, 235)'
+                : 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
             }}
           >
-            <Text
-              size='2'
-              className={`cursor-text ${isLoading ? 'animate-pulse' : ''}`}
-              style={{
-                color: '#2f3640',
-                fontSize: '16px',
-                wordBreak: 'break-word',
-                whiteSpace: 'pre-wrap',
-              }}
-            >
-              {isLoading ? (
-                <div className='flex items-center space-x-1'>
-                  <span>思考中</span>
-                  <span className='animate-bounce'>.</span>
-                  <span
-                    className='animate-bounce'
-                    style={{ animationDelay: '200ms' }}
-                  >
-                    .
-                  </span>
-                  <span
-                    className='animate-bounce'
-                    style={{ animationDelay: '400ms' }}
-                  >
-                    .
-                  </span>
-                </div>
-              ) : (
-                msg.content
-              )}
-            </Text>
-            {msg.image_url && (
-              <Box style={{ marginTop: '8px' }}>
-                <Avatar
-                  size='7'
-                  src={msg.image_url}
-                  radius='medium'
-                  fallback='IMG'
-                  className='cursor-pointer hover:scale-110 transition-all duration-300'
-                />
-              </Box>
+            {msg.text && (
+              <Text
+                size='2'
+                className={`cursor-text ${isLoading ? 'animate-pulse' : ''}`}
+                style={{
+                  color: '#2f3640',
+                  fontSize: '16px',
+                  wordBreak: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {isLoading ? (
+                  <div className='flex items-center space-x-1'>
+                    <span>思考中</span>
+                    <span className='animate-bounce'>.</span>
+                    <span
+                      className='animate-bounce'
+                      style={{ animationDelay: '200ms' }}
+                    >
+                      .
+                    </span>
+                    <span
+                      className='animate-bounce'
+                      style={{ animationDelay: '400ms' }}
+                    >
+                      .
+                    </span>
+                  </div>
+                ) : (
+                  msg.text
+                )}
+              </Text>
             )}
+
+            {msg.name && (
+              <span
+                className='inline-flex mb-3 px-4 rounded-2xl font-bold text-sm box-border bg-white leading-7'
+                style={{
+                  color: 'rgb(136, 168, 87)',
+                }}
+              >
+                {msg.name}
+              </span>
+            )}
+
+            {hasContent &&
+              msg.content?.map((content, index) => {
+                return (
+                  <Box key={index}>
+                    <Box key={index}>
+                      {content.eventData.artifact.map((artifact) => (
+                        <Avatar
+                          key={artifact.imageUrl}
+                          size='7'
+                          src={artifact.imageUrl}
+                          radius='medium'
+                          fallback='IMG'
+                          className='cursor-pointer hover:scale-110 transition-all duration-300'
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )
+              })}
           </Box>
         </Container>
       )
@@ -188,19 +121,19 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
               whiteSpace: 'pre-wrap',
             }}
           >
-            {msg.content}
+            {msg.text}
           </Text>
-          {msg.image_url && (
-            <Box style={{ marginTop: '8px' }}>
+          {msg.image_list?.map((image) => (
+            <Box style={{ marginTop: '8px' }} key={image.imageUrl}>
               <Avatar
                 size='7'
-                src={msg.image_url}
+                src={image.imageUrl}
                 radius='medium'
                 fallback='IMG'
                 className='cursor-pointer hover:scale-110 transition-all duration-300'
               />
             </Box>
-          )}
+          ))}
         </div>
       </div>
     )

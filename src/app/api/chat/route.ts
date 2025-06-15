@@ -3,12 +3,21 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { getDatabase } from '@/database'
-import { GPTService } from '@/lib/gpt'
+import { OpenAI } from '@/lib/openai'
+
+import type { Content } from '@/database/types'
+import type { Message } from 'ai'
 
 const messageSchema = z.object({
   projectId: z.string(),
-  content: z.string(),
-  imageUrl: z.string().optional(),
+  text: z.string(),
+  imageList: z
+    .array(
+      z.object({
+        imageUrl: z.string(),
+      })
+    )
+    .optional(),
   styleList: z
     .array(
       z.object({
@@ -23,6 +32,13 @@ const messageSchema = z.object({
 const getChatHistorySchema = z.object({
   projectId: z.string(),
 })
+
+const convertMessageToUIMessage = (message: Message) => {
+  return {
+    role: message.role,
+    content: message.content,
+  }
+}
 
 /**
  * 获取 project 中的 chat history 列表
@@ -83,48 +99,87 @@ export async function POST(request: Request) {
     }
 
     const { data, messages } = await request.json()
-    console.log(messages, 'messages')
 
-    const { content, projectId } = messageSchema.parse(JSON.parse(data))
+    const { text, projectId, imageList, styleList } = messageSchema.parse(
+      JSON.parse(data)
+    )
 
     const db = getDatabase('server')
 
     const saveMessage = async ({
-      content,
+      text,
       role,
+      content,
+      name,
     }: {
-      content: string
+      text?: string
       role: 'user' | 'assistant'
+      content?: Content[]
+      name?: string
     }) => {
       await db.chatHistory.create({
         user_id: userId,
         project_id: projectId,
-        content,
+        text: text ?? '',
+        content: content ?? [],
         role,
+        name,
       })
     }
 
     await saveMessage({
-      content,
+      text,
       role: 'user',
     })
 
     // 获取用户意图
-    const userIntent = await GPTService.tryGetUserIntent(content)
+    const userIntent = await OpenAI.tryGetUserIntent(text)
 
     switch (userIntent) {
       case 'generation':
-        break
+        const { images } = await OpenAI.generateImage({
+          prompt: text,
+          imageList: imageList ?? [],
+          styleList: styleList ?? [],
+        })
+
+        // 保存助手消息
+        const assistantMessage = {
+          role: 'assistant' as const,
+          name: 'gpt-image-1',
+          content: [
+            {
+              eventType: 'image_generation',
+              eventData: {
+                eventType: 'image_generation',
+                artifact: images,
+              },
+            },
+          ],
+        }
+
+        await saveMessage(assistantMessage)
+
+        // 返回流式响应
+        const encoder = new TextEncoder()
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(JSON.stringify(assistantMessage)))
+            controller.close()
+          },
+        })
+
+        return new Response(stream)
       case 'edit':
         break
       case 'other':
-        const result = await GPTService.completions({
-          messages,
+        const result = await OpenAI.completions({
+          messages: messages.map(convertMessageToUIMessage),
           onStepFinish: (response) => {
             const text = response?.text
             if (text) {
               saveMessage({
-                content: text,
+                text,
                 role: 'assistant',
               })
             }
@@ -133,93 +188,8 @@ export async function POST(request: Request) {
 
         return result.toDataStreamResponse()
     }
-
-    // let finalImageUrl = imageUrl
-
-    // if (finalImageUrl) {
-    //   // 创建用户消息
-    //   await db.messages.create({
-    //     user_id: userId,
-    //     project_id: projectId,
-    //     content,
-    //     image_url: finalImageUrl,
-    //     role: 'user',
-    //   })
-    // } else {
-    //   // 如果 imageUrl 为空，寻找上一条消息的图片
-    //   const db = getDatabase('server')
-    //   const { data, error, message } = await db.messages.findByProject(
-    //     projectId
-    //   )
-
-    //   if (error || !data) {
-    //     return NextResponse.json({ error: message }, { status: 500 })
-    //   }
-
-    //   // 从后往前遍历消息，找到第一条有图片的消息
-    //   for (let i = data.length - 1; i >= 0; i--) {
-    //     const message = data[i]
-    //     if (message.image_url) {
-    //       finalImageUrl = message.image_url
-    //       break
-    //     }
-    //   }
-    // }
-
-    // if (!finalImageUrl) {
-    //   return NextResponse.json({ error: '没有找到图片' }, { status: 400 })
-    // }
-
-    // // 如果有图片，调用 Flux API
-    // try {
-    //   // 添加处理中的消息
-    //   await db.messages.create({
-    //     user_id: userId,
-    //     project_id: projectId,
-    //     content: '正在处理图片，请稍候...',
-    //     role: 'assistant',
-    //   })
-
-    //   // 调用 Flux API
-    //   const { data } = await imageGenerator.generations({
-    //     prompt: content,
-    //     image_url: finalImageUrl,
-    //     model: 'flux-kontext-pro',
-    //   })
-
-    //   if (data.length > 0) {
-    //     // 添加生成的图片消息
-    //     await db.messages.create({
-    //       user_id: userId,
-    //       project_id: projectId,
-    //       content: '图片生成完成',
-    //       image_url: data[0].url,
-    //       role: 'assistant',
-    //     })
-    //   } else {
-    //     throw new Error('生成的图片 URL 为空')
-    //   }
-    // } catch (error) {
-    //   console.error('图片处理错误:', error)
-    //   // 添加错误消息
-    //   await db.messages.create({
-    //     user_id: userId,
-    //     project_id: projectId,
-    //     content:
-    //       error instanceof Error ? error.message : '图片处理失败，请重试',
-    //     role: 'assistant',
-    //   })
-    // }
-
-    // return NextResponse.json({ message: '图片处理成功' })
   } catch (error) {
-    console.error('创建消息失败:', error)
-    return NextResponse.json(
-      {
-        error: '创建消息失败',
-        details: error instanceof Error ? error.message : '未知错误',
-      },
-      { status: 500 }
-    )
+    console.error('处理消息失败:', error)
+    return NextResponse.json({ error: '处理消息失败' }, { status: 500 })
   }
 }

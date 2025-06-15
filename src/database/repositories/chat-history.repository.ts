@@ -3,12 +3,28 @@ import { DatabaseResult } from '../types'
 
 export interface Message {
   id: string
+  // 模型名称
+  name?: string
   user_id: string
   project_id: string
-  content: string
+  text?: string
+  content?: Content[]
   image_url?: string
   role: 'user' | 'assistant'
   created_at: Date
+}
+
+export type Content = {
+  eventType: string
+  eventData: {
+    eventType: string
+    artifact: Artifact[]
+  }
+}
+
+export type Artifact = {
+  imageUrl: string
+  source: string
 }
 
 export class ChatHistoryRepository extends DatabaseClient {
