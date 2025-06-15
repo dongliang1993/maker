@@ -11,7 +11,7 @@ export interface Message {
   created_at: Date
 }
 
-export class MessagesRepository extends DatabaseClient {
+export class ChatHistoryRepository extends DatabaseClient {
   private readonly table = 'messages'
 
   async findByProject(projectId: string): Promise<DatabaseResult<Message[]>> {

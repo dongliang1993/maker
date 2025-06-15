@@ -1,13 +1,12 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import {
   generateText,
-  StepResult,
+  Message,
   streamText,
   StreamTextOnFinishCallback,
-  TOOLS,
+  StreamTextOnStepFinishCallback,
   ToolSet,
 } from 'ai'
-
 const BASE_API = 'https://api.tu-zi.com/v1'
 
 const openai = createOpenAI({
@@ -19,27 +18,6 @@ const openai = createOpenAI({
 })
 
 export type UserIntent = 'generation' | 'edit' | 'other'
-// 返回值的结构
-// {
-//   id: 'chatcmpl-89DFr08HfB4REFFV4PLl0d81lAZzm',
-//   object: 'chat.completion',
-//   created: 1749850982,
-//   model: 'gpt-4o-mini',
-//   choices: [ { index: 0, message: [Object], finish_reason: 'stop' } ],
-//   usage: {
-//     prompt_tokens: 57,
-//     completion_tokens: 8,
-//     total_tokens: 65,
-//     prompt_tokens_details: { text_tokens: 46, cached_tokens: 0, audio_tokens: 0 },
-//     completion_tokens_details: {
-//       audio_tokens: 0,
-//       reasoning_tokens: 0,
-//       accepted_prediction_tokens: 0,
-//       rejected_prediction_tokens: 0,
-//       content_tokens: 8
-//     }
-//   }
-// }
 
 export type Completion = {
   role: 'user' | 'assistant'
@@ -107,15 +85,16 @@ export class GPTService {
     onFinish,
     onStepFinish,
   }: {
-    messages: any
+    messages: Message[]
     onError?: ({ error }: { error: unknown }) => void
-    onFinish?: (response?: StreamTextOnFinishCallback<TOOLS>) => void
-    onStepFinish?: (response: StepResult<ToolSet>) => void
+    onFinish?: StreamTextOnFinishCallback<ToolSet>
+    onStepFinish?: StreamTextOnStepFinishCallback<ToolSet>
   }) {
     const result = await streamText({
-      model: openai('gpt-4o-mini'),
+      model: openai('gpt-4o'),
       maxTokens: undefined,
       temperature: 1,
+      toolChoice: 'auto',
       messages: [
         {
           role: 'system',
@@ -128,7 +107,6 @@ export class GPTService {
         console.error(error)
         onError?.(error)
       },
-      // @ts-expect-error TODO: 需要修改
       onFinish: onFinish,
       onStepFinish: onStepFinish,
     })

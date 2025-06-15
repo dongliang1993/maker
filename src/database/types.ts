@@ -1,4 +1,4 @@
-export type { Message } from './repositories/messages.repository'
+export type { Message } from './repositories/chat-history.repository'
 export type { Project } from './repositories/projects.repository'
 
 export class DatabaseError extends Error {

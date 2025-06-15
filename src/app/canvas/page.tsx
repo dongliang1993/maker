@@ -16,7 +16,7 @@ export default function CanvasPage() {
   const [loading, setLoading] = useState(true)
 
   const [options, setOptions] = useState<UseChatOptions>({
-    api: '/api/messages',
+    api: '/api/chat',
     initialMessages: [],
     body: {
       projectId,

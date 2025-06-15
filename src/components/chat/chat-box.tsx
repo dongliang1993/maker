@@ -1,3 +1,5 @@
+'use client'
+
 import { ArrowUpIcon, Cross2Icon } from '@radix-ui/react-icons'
 import {
   Avatar,

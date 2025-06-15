@@ -4,7 +4,6 @@ import { z } from 'zod'
 
 import { getDatabase } from '@/database'
 import { GPTService } from '@/lib/gpt'
-// import { imageGenerator } from '@/services/image-generator'
 
 const messageSchema = z.object({
   projectId: z.string(),
@@ -21,7 +20,15 @@ const messageSchema = z.object({
     .optional(),
 })
 
-// 获取项目的消息列表
+const getChatHistorySchema = z.object({
+  projectId: z.string(),
+})
+
+/**
+ * 获取 project 中的 chat history 列表
+ * @param request
+ * @returns
+ */
 export async function GET(request: Request) {
   try {
     const { userId } = await auth()
@@ -30,22 +37,33 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url)
-    const projectId = searchParams.get('projectId')
 
-    if (!projectId) {
+    const {
+      success,
+      data: params,
+      error: parseError,
+    } = getChatHistorySchema.safeParse({
+      projectId: searchParams.get('projectId'),
+    })
+
+    if (!success) {
+      console.error('[chat history] 获取消息失败:', parseError)
       return NextResponse.json({ error: '缺少项目ID' }, { status: 400 })
     }
 
     const db = getDatabase('server')
-    const { data, error, message } = await db.messages.findByProject(projectId)
+    const { data, error, message } = await db.chatHistory.findByProject(
+      params.projectId
+    )
 
     if (error) {
+      console.error('[chat history] 获取消息失败:', error)
       return NextResponse.json({ error: message }, { status: 500 })
     }
 
     return NextResponse.json(data ?? [])
   } catch (error) {
-    console.error('获取消息失败:', error)
+    console.error('[chat history] 获取消息失败:', error)
     return NextResponse.json(
       {
         error: '获取消息失败',
@@ -64,11 +82,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { imageUrl, messages, data } = body
-    console.log(body, 'body')
+    const { data, messages } = await request.json()
+    console.log(messages, 'messages')
 
     const { content, projectId } = messageSchema.parse(JSON.parse(data))
+
+    const db = getDatabase('server')
 
     const saveMessage = async ({
       content,
@@ -77,7 +96,7 @@ export async function POST(request: Request) {
       content: string
       role: 'user' | 'assistant'
     }) => {
-      await db.messages.create({
+      await db.chatHistory.create({
         user_id: userId,
         project_id: projectId,
         content,
@@ -85,17 +104,13 @@ export async function POST(request: Request) {
       })
     }
 
-    const db = getDatabase('server')
-
     await saveMessage({
       content,
       role: 'user',
     })
 
+    // 获取用户意图
     const userIntent = await GPTService.tryGetUserIntent(content)
-
-    // const db = getDatabase('server')
-    // const userIntent = await GPTService.tryGetUserIntent(content)
 
     switch (userIntent) {
       case 'generation':

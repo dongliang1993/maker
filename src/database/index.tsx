@@ -1,16 +1,16 @@
-import { MessagesRepository } from './repositories/messages.repository'
+import { ChatHistoryRepository } from './repositories/chat-history.repository'
 import { ProjectsRepository } from './repositories/projects.repository'
 import { DatabaseType } from './types'
 
 export class Database {
   readonly projects: ProjectsRepository
-  readonly messages: MessagesRepository
+  readonly chatHistory: ChatHistoryRepository
 
   constructor(type: DatabaseType) {
     this.projects = new ProjectsRepository({
       type,
     })
-    this.messages = new MessagesRepository({
+    this.chatHistory = new ChatHistoryRepository({
       type,
     })
   }

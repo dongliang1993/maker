@@ -17,7 +17,7 @@ interface SendMessageParams {
 
 // API 调用函数
 const sendMessage = async (params: SendMessageParams) => {
-  const response = await fetch('/api/messages', {
+  const response = await fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ const sendMessage = async (params: SendMessageParams) => {
  * @returns 消息列表
  */
 export const getInitialMessages = async (projectId: string) => {
-  const response = await fetch(`/api/messages?projectId=${projectId}`)
+  const response = await fetch(`/api/chat?projectId=${projectId}`)
 
   if (!response.ok) {
     throw new Error('获取消息失败')
