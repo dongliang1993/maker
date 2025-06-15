@@ -16,7 +16,6 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
   const searchParams = useSearchParams()
   const { isSignedIn } = useUser()
   const projectId = searchParams.get('projectId')
-
   const { data: projectData, update } = useProject(projectId!)
 
   const handleUpdateProject = async (name: string) => {

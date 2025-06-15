@@ -66,7 +66,6 @@ export class DatabaseClient {
   ): Promise<{ data: T | null; error: boolean; message: string }> {
     try {
       const result = await callback(this.supabase)
-      console.log('🔍 查询结果:', result)
       return this.checkResult(result)
     } catch (error) {
       this.handleError(error)

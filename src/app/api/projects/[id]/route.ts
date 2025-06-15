@@ -12,8 +12,10 @@ export async function GET(
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const db = getDatabase('server')
-    const project = await db.projects.findById(params.id)
+    const project = await db.projects.findById(id)
 
     if (!project) {
       return NextResponse.json({ error: '项目不存在' }, { status: 404 })

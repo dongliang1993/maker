@@ -34,6 +34,7 @@ export default function CanvasPage() {
 
   // projectId 从 url 中获取
   const projectId = useSearchParams().get('projectId') || ''
+  console.log(projectId, 'projectId')
 
   // 初始化加载消息
   useEffect(() => {

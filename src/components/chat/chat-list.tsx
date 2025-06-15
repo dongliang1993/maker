@@ -123,7 +123,17 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
   }, [messagesLength])
 
   return (
-    <ScrollArea scrollbars='vertical' type='hover' id='chat-list'>
+    <ScrollArea
+      scrollbars='vertical'
+      type='hover'
+      id='chat-list'
+      style={{
+        // @ts-expect-error 忽略类型错误
+        '--radix-scroll-area-thumb-width': '0px',
+        '--radix-scrollbar-hover-width': '0px',
+        '--radix-scrollbar-hover-color': 'rgba(0, 0, 0, 0.1)',
+      }}
+    >
       <Flex direction='column' gap='5'>
         {isLoadingMessages ? (
           <Text size='2' color='gray'>
