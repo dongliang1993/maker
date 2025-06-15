@@ -3,13 +3,22 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { getDatabase } from '@/database'
-// import { imageGenerator } from '@/services/image-generator'
 import { GPTService } from '@/lib/gpt'
+// import { imageGenerator } from '@/services/image-generator'
 
 const messageSchema = z.object({
   projectId: z.string(),
   content: z.string(),
   imageUrl: z.string().optional(),
+  styleList: z
+    .array(
+      z.object({
+        styleName: z.string(),
+        styleCoverUrl: z.string(),
+        imagePrompt: z.string(),
+      })
+    )
+    .optional(),
 })
 
 // 获取项目的消息列表
@@ -56,11 +65,37 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { content, projectId } = messageSchema.parse(body)
-    console.log(content, 'content')
+    const { imageUrl, messages, data } = body
+    console.log(body, 'body')
+
+    const { content, projectId } = messageSchema.parse(JSON.parse(data))
+
+    const saveMessage = async ({
+      content,
+      role,
+    }: {
+      content: string
+      role: 'user' | 'assistant'
+    }) => {
+      await db.messages.create({
+        user_id: userId,
+        project_id: projectId,
+        content,
+        role,
+      })
+    }
 
     const db = getDatabase('server')
+
+    await saveMessage({
+      content,
+      role: 'user',
+    })
+
     const userIntent = await GPTService.tryGetUserIntent(content)
+
+    // const db = getDatabase('server')
+    // const userIntent = await GPTService.tryGetUserIntent(content)
 
     switch (userIntent) {
       case 'generation':
@@ -68,43 +103,21 @@ export async function POST(request: Request) {
       case 'edit':
         break
       case 'other':
-        await db.messages.create({
-          user_id: userId,
-          project_id: projectId,
-          content,
-          role: 'user',
+        const result = await GPTService.completions({
+          messages,
+          onStepFinish: (response) => {
+            const text = response?.text
+            if (text) {
+              saveMessage({
+                content: text,
+                role: 'assistant',
+              })
+            }
+          },
         })
 
-        const completions = await GPTService.completions(content)
-
-        // 如果返回的是数组，就批量插入
-        if (Array.isArray(completions)) {
-          const messages = completions.map((completion) => ({
-            user_id: userId,
-            project_id: projectId,
-            content: String(completion.content),
-            role: completion.role as 'user' | 'assistant',
-          }))
-
-          const { error } = await db.messages.upsertMany(messages)
-          if (error) {
-            return NextResponse.json({ error: '创建消息失败' }, { status: 500 })
-          }
-        } else {
-          // 如果是单条消息，保持原来的插入方式
-          await db.messages.create({
-            user_id: userId,
-            project_id: projectId,
-            content: completions,
-            role: 'assistant',
-          })
-        }
-        break
-      default:
-        return NextResponse.json({ message: 'success' })
+        return result.toDataStreamResponse()
     }
-
-    return NextResponse.json({ message: 'success' })
 
     // let finalImageUrl = imageUrl
 

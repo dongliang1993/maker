@@ -12,6 +12,7 @@ import React, { useState } from 'react'
 import StylePick from './style-pick'
 import UploadIcon from './upload-icon'
 
+import { useChat } from '@/lib/use-chat'
 import { useUploadImage } from '@/services/file'
 import { useSendMessage } from '@/services/message'
 
@@ -22,9 +23,13 @@ interface ChatBoxProps {
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
-  const [input, setInput] = useState('')
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined)
   const [style, setStyle] = useState<Style | null>(null)
+  const { input, handleInputChange, handleSubmit } = useChat()
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleInputChange(e)
+  }
 
   const { mutate: uploadImage, isPending: isUploading } = useUploadImage()
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
@@ -32,21 +37,30 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   // 处理发送消息
   const handleSendMessage = () => {
     if (!input.trim() || isSending) return
-
-    setInput('')
-
-    sendMessage(
+    handleSubmit(
+      {},
       {
-        projectId,
-        content: input.trim(),
-        imageUrl,
-      },
-      {
-        onSuccess: () => {
-          setImageUrl(undefined)
-        },
+        data: JSON.stringify({
+          projectId,
+          imageUrl,
+          content: input.trim(),
+        }),
+        allowEmptySubmit: false,
       }
     )
+
+    // sendMessage(
+    //   {
+    //     projectId,
+    //     content: input.trim(),
+    //     imageUrl,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       setImageUrl(undefined)
+    //     },
+    //   }
+    // )
   }
 
   // 处理按键事件
@@ -143,7 +157,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
           variant='surface'
           resize='none'
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInput}
           onKeyDown={handleKeyPress}
         />
         <Flex justify='between' align='center'>

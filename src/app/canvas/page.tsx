@@ -3,68 +3,51 @@
 import { ResizablePanel } from '@/components/ResizablePanel'
 import { Card, Flex, Text } from '@radix-ui/themes'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { ChatBox, ChatList } from '@/components/chat'
-import { getDatabase } from '@/database'
-
-import type { Message } from '@/database/types'
-
-// 从 localStorage 加载消息
-const loadMessages = async (projectId: string): Promise<Message[]> => {
-  const db = getDatabase('client')
-  const { data, error } = await db.messages.findByProject(projectId)
-  if (error) {
-    console.error(error)
-    return []
-  }
-
-  return data as Message[]
-}
-
-// 保存消息到 localStorage
-const saveMessages = (messages: Message[]) => {
-  if (typeof window === 'undefined') return
-  localStorage.setItem('chat-messages', JSON.stringify(messages))
-}
+import { ChatStoreProvider } from '@/lib/use-chat/provider'
+import { getInitialMessages } from '@/services/message'
+import { type UseChatOptions } from '@ai-sdk/react'
 
 export default function CanvasPage() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-
   // projectId 从 url 中获取
   const projectId = useSearchParams().get('projectId') || ''
-  console.log(projectId, 'projectId')
+  const [loading, setLoading] = useState(true)
+
+  const [options, setOptions] = useState<UseChatOptions>({
+    api: '/api/messages',
+    initialMessages: [],
+    body: {
+      projectId,
+    },
+  })
 
   // 初始化加载消息
   useEffect(() => {
     const run = async () => {
-      if (!projectId) return
-      const savedMessages = await loadMessages(projectId)
-      if (savedMessages.length === 0) {
-      } else {
-        setMessages(savedMessages)
+      try {
+        if (!projectId) return
+        const savedMessages = (await getInitialMessages(projectId)) || []
+
+        if (savedMessages.length > 0) {
+          setOptions((prev) => {
+            return {
+              ...prev,
+              initialMessages: savedMessages,
+            }
+          })
+        }
+      } finally {
+        setLoading(false)
       }
     }
 
     run()
   }, [projectId])
 
-  // 当消息更新时保存到 localStorage
-  useEffect(() => {
-    saveMessages(messages)
-  }, [messages])
-
-  // 自动滚动到最新消息
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      const element = scrollAreaRef.current
-      element.scrollTop = element.scrollHeight
-    }
-  }, [messages])
-
   return (
-    <>
+    <ChatStoreProvider {...options}>
       <Flex
         direction='row'
         width='100%'
@@ -110,6 +93,6 @@ export default function CanvasPage() {
         </ResizablePanel>
       </Flex>
       <ChatBox projectId={projectId} />
-    </>
+    </ChatStoreProvider>
   )
 }

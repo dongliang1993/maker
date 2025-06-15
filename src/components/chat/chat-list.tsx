@@ -9,15 +9,19 @@ import {
 import { useEffect } from 'react'
 
 import { Logo } from '@/components/logo'
-import { Message, useMessages } from '@/services/message'
+import { useChatStore } from '@/lib/use-chat'
+import { Message, getInitialMessages } from '@/services/message'
 
 type ChatListProps = {
   projectId: string
 }
 
 export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
-  const { data: messages = [], isLoading: isLoadingMessages } =
-    useMessages(projectId)
+  const isLoading = false
+  // const { data: messages = [] } = useMessages(projectId)
+  const messages = useChatStore((state) => state.messages)
+
+  console.log(messages, 'messages')
 
   const messagesLength = messages.length
 
@@ -111,6 +115,102 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
     )
   }
 
+  const renderUIMessage = (msg) => {
+    if (msg.role !== 'user') {
+      const isLoading = msg.id.startsWith('temp-loading-')
+
+      return (
+        <Container key={msg.id}>
+          <Logo size={2} className='mb-2' />
+          <Box
+            className='rounded-md py-3 px-4'
+            style={{
+              background: 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
+            }}
+          >
+            <Text
+              size='2'
+              className={`cursor-text ${isLoading ? 'animate-pulse' : ''}`}
+              style={{
+                color: '#2f3640',
+                fontSize: '16px',
+                wordBreak: 'break-word',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {isLoading ? (
+                <div className='flex items-center space-x-1'>
+                  <span>思考中</span>
+                  <span className='animate-bounce'>.</span>
+                  <span
+                    className='animate-bounce'
+                    style={{ animationDelay: '200ms' }}
+                  >
+                    .
+                  </span>
+                  <span
+                    className='animate-bounce'
+                    style={{ animationDelay: '400ms' }}
+                  >
+                    .
+                  </span>
+                </div>
+              ) : (
+                msg.content
+              )}
+            </Text>
+            {msg.image_url && (
+              <Box style={{ marginTop: '8px' }}>
+                <Avatar
+                  size='7'
+                  src={msg.image_url}
+                  radius='medium'
+                  fallback='IMG'
+                  className='cursor-pointer hover:scale-110 transition-all duration-300'
+                />
+              </Box>
+            )}
+          </Box>
+        </Container>
+      )
+    }
+
+    return (
+      <div className='flex justify-end w-full' key={msg.id}>
+        <div className='rounded-md py-3 px-4 bg-[#4A535F] text-white'>
+          <Text
+            size='2'
+            className='cursor-text'
+            style={{
+              fontSize: '16px',
+              wordBreak: 'break-word',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {msg.content}
+          </Text>
+          {msg.image_url && (
+            <Box style={{ marginTop: '8px' }}>
+              <Avatar
+                size='7'
+                src={msg.image_url}
+                radius='medium'
+                fallback='IMG'
+                className='cursor-pointer hover:scale-110 transition-all duration-300'
+              />
+            </Box>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  useEffect(() => {
+    getInitialMessages(projectId).then((messages) => {
+      console.log(messages, 'messages')
+    })
+  }, [projectId])
+
   useEffect(() => {
     // 聊天框滚动到最底部
     const chatList = document.getElementById('chat-list')
@@ -135,7 +235,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
       }}
     >
       <Flex direction='column' gap='5'>
-        {isLoadingMessages ? (
+        {isLoading ? (
           <Text size='2' color='gray'>
             加载消息中...
           </Text>
@@ -144,7 +244,7 @@ export const ChatList: React.FC<ChatListProps> = ({ projectId }) => {
             暂无消息
           </Text>
         ) : (
-          messages.map(renderMessage)
+          messages.map(renderUIMessage)
         )}
       </Flex>
     </ScrollArea>

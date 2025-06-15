@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
 export interface Message {
   id: string
   user_id: string
@@ -33,35 +32,16 @@ const sendMessage = async (params: SendMessageParams) => {
   return response.json()
 }
 
-const getMessages = async (projectId: string) => {
+/**
+ * 获取初始消息
+ * @param projectId 项目ID
+ * @returns 消息列表
+ */
+export const getInitialMessages = async (projectId: string) => {
   const response = await fetch(`/api/messages?projectId=${projectId}`)
 
   if (!response.ok) {
     throw new Error('获取消息失败')
-  }
-
-  // 检查响应的 Content-Type
-  const contentType = response.headers.get('Content-Type')
-
-  if (contentType?.includes('text/event-stream')) {
-    if (!response.body) {
-      throw new Error('没有响应数据')
-    }
-
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
-
-    let result = ''
-
-    while (true) {
-      const { done, value } = await reader?.read()
-      if (done) break
-      const chunk = decoder.decode(value, { stream: true })
-      result += chunk
-      console.log(chunk)
-    }
-
-    return result
   }
 
   return response.json()
@@ -135,7 +115,7 @@ export const useSendMessage = () => {
 export const useMessages = (projectId: string) => {
   return useQuery({
     queryKey: ['messages', projectId],
-    queryFn: () => getMessages(projectId),
+    queryFn: () => getInitialMessages(projectId),
     staleTime: 30 * 1000, // 数据在 30 秒内被认为是新鲜的
     refetchInterval: 30 * 1000, // 每 30 秒自动重新获取
   })
