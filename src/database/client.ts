@@ -34,7 +34,6 @@ export class DatabaseClient {
     error: boolean
     message: string
   } {
-    console.log('🔍 检查操作结果:', result)
     if (result.error) {
       const message = (result.error as Error).message || '未知错误'
 
