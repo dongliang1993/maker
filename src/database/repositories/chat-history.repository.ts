@@ -1,25 +1,25 @@
 import { DatabaseClient } from '../client'
 import { DatabaseResult } from '../types'
 
-export interface Message {
-  id: string
-  // 模型名称
-  name?: string
-  user_id: string
-  project_id: string
-  text?: string
-  content?: Content[]
-  image_url?: string
-  role: 'user' | 'assistant'
-  created_at: Date
-}
-
-export type Content = {
+export type ToolContent = {
   eventType: string
   eventData: {
     eventType: string
     artifact: Artifact[]
   }
+}
+
+export interface DBMessage {
+  id: string
+  // 模型名称
+  name?: string
+  user_id: string
+  project_id: string
+  content?: string
+  tool_content?: ToolContent[]
+  image_url?: string
+  role: 'user' | 'assistant' | 'system' | 'tool' | 'data'
+  created_at: string
 }
 
 export type Artifact = {
@@ -30,7 +30,7 @@ export type Artifact = {
 export class ChatHistoryRepository extends DatabaseClient {
   private readonly table = 'messages'
 
-  async findByProject(projectId: string): Promise<DatabaseResult<Message[]>> {
+  async findByProject(projectId: string): Promise<DatabaseResult<DBMessage[]>> {
     return await this.query(async (supabase) => {
       const { data, error } = await supabase
         .from(this.table)
@@ -43,8 +43,8 @@ export class ChatHistoryRepository extends DatabaseClient {
   }
 
   async create(
-    message: Omit<Message, 'id' | 'created_at'>
-  ): Promise<Message | null> {
+    message: Omit<DBMessage, 'id' | 'created_at'>
+  ): Promise<DBMessage | null> {
     const result = await this.query(async (supabase) => {
       const { data, error } = await supabase
         .from(this.table)
@@ -65,16 +65,16 @@ export class ChatHistoryRepository extends DatabaseClient {
       return null
     }
 
-    return result.data as Message
+    return result.data as DBMessage
   }
 
   async upsertMany(
-    messages: Array<Omit<Message, 'id' | 'created_at'>>
-  ): Promise<DatabaseResult<Message[]>> {
+    messages: Array<Omit<DBMessage, 'id' | 'created_at'>>
+  ): Promise<DatabaseResult<DBMessage[]>> {
     return await this.query(async (supabase) => {
       const { data, error } = await supabase
         .from(this.table)
-        .upsert(messages)
+        .insert(messages)
         .select()
 
       if (error) {

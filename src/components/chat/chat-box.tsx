@@ -37,26 +37,23 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   // 处理发送消息
   const handleSendMessage = () => {
     if (!input.trim() || isLoading) return
-    handleSubmit(
-      {},
-      {
-        data: JSON.stringify({
-          projectId,
-          imageList: imageUrl ? [{ imageUrl }] : [],
-          text: input.trim(),
-          styleList: style
-            ? [
-                {
-                  styleCoverUrl: style.url,
-                  imagePrompt: style.prompt,
-                  styleName: style.name,
-                },
-              ]
-            : [],
-        }),
-        allowEmptySubmit: false,
-      }
-    )
+    handleSubmit(undefined, {
+      body: {
+        projectId,
+        imageList: imageUrl ? [{ imageUrl }] : [],
+        content: input.trim(),
+        styleList: style
+          ? [
+              {
+                styleCoverUrl: style.url,
+                imagePrompt: style.prompt,
+                styleName: style.name,
+              },
+            ]
+          : [],
+      },
+      allowEmptySubmit: false,
+    })
   }
 
   // 处理按键事件

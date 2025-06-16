@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { ChatBox, ChatList } from '@/components/chat'
 import { ChatProvider } from '@/lib/use-chat'
 import { getInitialMessages } from '@/services/message'
+
 import { type UseChatOptions } from '@ai-sdk/react'
 
 export default function CanvasPage() {
@@ -20,6 +21,16 @@ export default function CanvasPage() {
     initialMessages: [],
     body: {
       projectId,
+      experimental_throttle: 100,
+      // generateId: generateUUID,
+    },
+    // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
+    experimental_prepareRequestBody: (body) => {
+      const { messages, ...rest } = body
+      return {
+        message: messages.at(-1),
+        ...rest.requestBody,
+      }
     },
   })
 
@@ -31,6 +42,7 @@ export default function CanvasPage() {
         const savedMessages = (await getInitialMessages(projectId)) || []
 
         if (savedMessages.length > 0) {
+          // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
           setOptions((prev) => {
             return {
               ...prev,

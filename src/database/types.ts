@@ -1,7 +1,7 @@
 export type {
   Artifact,
-  Content,
-  Message,
+  DBMessage,
+  ToolContent,
 } from './repositories/chat-history.repository'
 export type { Project } from './repositories/projects.repository'
 

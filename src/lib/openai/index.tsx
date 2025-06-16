@@ -10,6 +10,7 @@ import {
 
 const BASE_API = 'https://api.tu-zi.com/v1'
 
+import { generateImages } from '@/lib/ai/tools/generate-images'
 import type { ImageList, StyleList } from '@/types/project'
 
 const openai = createOpenAI({
@@ -62,9 +63,14 @@ export class OpenAI {
     onStepFinish?: StreamTextOnStepFinishCallback<ToolSet>
   }) {
     const result = await streamText({
-      model: openai('gpt-4o'),
+      model: openai('gpt-3.5-turbo'),
       maxTokens: undefined,
       temperature: 1,
+      maxSteps: 5,
+      // experimental_transform: smoothStream({ chunking: 'word' }),
+      tools: {
+        generateImages: generateImages(),
+      },
       toolChoice: 'auto',
       messages: [
         {

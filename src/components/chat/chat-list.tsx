@@ -10,6 +10,9 @@ import {
 import { useEffect } from 'react'
 
 import { Logo } from '@/components/logo'
+import { sanitizeText } from '@/lib/utils'
+import { Markdown } from '../markdown'
+
 import { UIMessage, useChatStore } from '@/lib/use-chat'
 
 type ChatListProps = {
@@ -19,60 +22,39 @@ type ChatListProps = {
 
 export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
   const messages = useChatStore((state) => state.messages)
-  const isLoading = useChatStore((state) => state.isLoading)
 
   console.log(messages, 'messages')
 
   const messagesLength = messages.length
 
   const renderUIMessage = (msg: UIMessage) => {
-    if (msg.role !== 'user') {
-      const hasContent = (msg.content?.length ?? 0) > 0
+    if (msg.role === 'assistant') {
+      const hasContent =
+        Array.isArray(msg.tool_content) && msg.tool_content.length > 0
 
       return (
         <Container key={msg.id}>
           <Logo size={2} className='mb-2' />
           <Box
-            className='rounded-md py-3 px-4'
+            className='rounded-md py-3 px-4 gap-2'
             style={{
               background: hasContent
                 ? 'rgb(241, 245, 235)'
                 : 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
             }}
           >
-            {msg.text && (
-              <Text
-                size='2'
-                className={`cursor-text ${isLoading ? 'animate-pulse' : ''}`}
-                style={{
-                  color: '#2f3640',
-                  fontSize: '16px',
-                  wordBreak: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {isLoading ? (
-                  <div className='flex items-center space-x-1'>
-                    <span>思考中</span>
-                    <span className='animate-bounce'>.</span>
-                    <span
-                      className='animate-bounce'
-                      style={{ animationDelay: '200ms' }}
-                    >
-                      .
-                    </span>
-                    <span
-                      className='animate-bounce'
-                      style={{ animationDelay: '400ms' }}
-                    >
-                      .
-                    </span>
-                  </div>
-                ) : (
-                  msg.text
-                )}
-              </Text>
-            )}
+            {msg.parts.map((part, index) => {
+              const key = `message-part-${index}`
+              const { type } = part
+
+              if (type === 'text') {
+                return (
+                  <Markdown key={key}>
+                    {sanitizeText(part?.text ?? '')}
+                  </Markdown>
+                )
+              }
+            })}
 
             {msg.name && (
               <span
@@ -86,7 +68,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
             )}
 
             {hasContent &&
-              msg.content?.map((content, index) => {
+              msg.tool_content?.map((content, index) => {
                 return (
                   <Box key={index}>
                     <Box key={index}>
@@ -121,7 +103,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
               whiteSpace: 'pre-wrap',
             }}
           >
-            {msg.text}
+            {msg.content}
           </Text>
           {msg.image_list?.map((image) => (
             <Box style={{ marginTop: '8px' }} key={image.imageUrl}>

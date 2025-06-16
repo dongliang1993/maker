@@ -1,4 +1,6 @@
+import { DBMessage } from '@/database/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 export interface Message {
   id: string
   user_id: string
@@ -44,7 +46,7 @@ export const getInitialMessages = async (projectId: string) => {
     throw new Error('获取消息失败')
   }
 
-  return response.json()
+  return response.json() as Promise<DBMessage[]>
 }
 
 // React Query Hooks
