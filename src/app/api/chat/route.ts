@@ -105,12 +105,8 @@ export async function POST(request: Request) {
 
     const result = await OpenAI.completions({
       messages,
-      onStepFinish: (step) => {
-        // 检查是否有工具调用
-        if (step.toolCalls) {
-          console.log('Tool calls:', step.toolCalls)
-        }
-      },
+      styleList,
+      imageList,
       onFinish: async (response) => {
         try {
           const [, assistantMessage] = appendResponseMessages({
@@ -125,8 +121,8 @@ export async function POST(request: Request) {
                 project_id: projectId,
                 role: assistantMessage.role,
                 content: assistantMessage.content,
-                // parts: assistantMessage.parts,
-                // attachments: assistantMessage.experimental_attachments ?? [],
+                tool_content: [],
+                name: '',
               },
             ],
           })

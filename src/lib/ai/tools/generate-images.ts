@@ -1,26 +1,18 @@
 import { tool } from 'ai'
 import { z } from 'zod'
 
-export const generateImages = () =>
-  tool({
-    description: `
-    You are a helpful assistant that can generate images.
-    You can use this tool to generate images.
-    `,
-    parameters: z.object({
-      prompt: z.string().optional(),
-      imageList: z.array(z.string()).optional(),
-      styleList: z.array(z.string()).optional(),
-    }),
-    execute: async ({ prompt, imageList, styleList }) => {
-      console.log('Tool called with:', {
-        prompt,
-        imageList,
-        styleList,
-      })
+export const getWeather = tool({
+  description: 'Get the current weather at a location',
+  parameters: z.object({
+    latitude: z.number(),
+    longitude: z.number(),
+  }),
+  execute: async ({ latitude, longitude }) => {
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+    )
 
-      return {
-        images: [],
-      }
-    },
-  })
+    const weatherData = await response.json()
+    return weatherData
+  },
+})
