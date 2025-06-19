@@ -1,11 +1,10 @@
 'use client'
 
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
+import { useUser } from '@clerk/nextjs'
 import { Flex } from '@radix-ui/themes'
 import { useSearchParams } from 'next/navigation'
 import React from 'react'
 
-import { Logo } from '@/components/logo'
 import { useProject } from '@/services/project'
 
 interface CanvasLayoutProps {
@@ -42,7 +41,7 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
         left: 0,
       }}
     >
-      <Flex
+      {/* <Flex
         px='4'
         py='2'
         style={{
@@ -68,7 +67,7 @@ export default function CanvasLayout({ children }: CanvasLayoutProps) {
           />
         </Flex>
         <Flex px='4'>{isSignedIn ? <UserButton /> : <SignInButton />}</Flex>
-      </Flex>
+      </Flex> */}
 
       <Flex
         style={{

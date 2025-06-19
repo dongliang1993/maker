@@ -69,6 +69,7 @@ export default function CanvasPage() {
         style={{
           overflow: 'hidden',
           position: 'relative',
+          backgroundColor: '#F8F7F7',
         }}
       >
         {/* 左侧画布区域 */}
