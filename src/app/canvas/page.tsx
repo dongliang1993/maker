@@ -1,10 +1,12 @@
 'use client'
 
 import { ResizablePanel } from '@/components/ResizablePanel'
-import { Card, Flex, Text } from '@radix-ui/themes'
+import { Card, Flex } from '@radix-ui/themes'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
+import { CanvasPlayground } from '@/components/canvas'
 import { ChatBox, ChatList } from '@/components/chat'
 import { ChatProvider } from '@/lib/use-chat'
 import { getInitialMessages } from '@/services/message'
@@ -22,7 +24,7 @@ export default function CanvasPage() {
     body: {
       projectId,
       experimental_throttle: 100,
-      // generateId: generateUUID,
+      generateId: uuidv4,
     },
     // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
     experimental_prepareRequestBody: (body) => {
@@ -66,6 +68,7 @@ export default function CanvasPage() {
         height='100vh'
         style={{
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
         {/* 左侧画布区域 */}
@@ -75,7 +78,6 @@ export default function CanvasPage() {
             height: '100%',
           }}
         >
-          {/* 画布区域 */}
           <Card
             size='2'
             variant='ghost'
@@ -86,23 +88,26 @@ export default function CanvasPage() {
               justifyContent: 'center',
             }}
           >
-            <Text size='3' color='gray' align='center'>
-              拖放图片到这里
-              <br />
-              或点击上传
-            </Text>
+            <CanvasPlayground />
           </Card>
         </Flex>
 
-        {/* 右侧聊天区域 */}
-        <ResizablePanel>
-          <Flex
-            direction='column'
-            className='px-6 pt-2 pb-14 border-l border-gray-200 h-full w-full'
-          >
-            <ChatList loading={loading} />
-          </Flex>
-        </ResizablePanel>
+        <div className='z-50 right-0 absolute top-0 bottom-0 max-w-[600] overflow-y-auto bg-white'>
+          {/* 右侧聊天区域 */}
+          <ResizablePanel>
+            {(width) => (
+              <Flex
+                direction='column'
+                className='px-6 pt-2 pb-14 border-l border-gray-200 h-full w-full'
+                style={{
+                  width,
+                }}
+              >
+                <ChatList loading={loading} />
+              </Flex>
+            )}
+          </ResizablePanel>
+        </div>
       </Flex>
       <ChatBox projectId={projectId} />
     </ChatProvider>

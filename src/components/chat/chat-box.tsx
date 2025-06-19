@@ -132,7 +132,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
         boxShadow: 'rgba(193, 193, 193, 0.25) 0px 4px 81.6px 0px',
         border: '1px solid #e9e9e9',
       }}
-      className='fixed bottom-10 rounded-xl bg-white w-1/2 left-1/3 -translate-x-1/2'
+      className='fixed z-20 bottom-10 rounded-xl bg-white w-1/2 left-1/3 -translate-x-1/2'
     >
       <Flex direction='column' gap='2'>
         {/* 图片列表 */}
