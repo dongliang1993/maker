@@ -87,6 +87,8 @@ const CanvasPlayground = () => {
 
   // 更新图片属性
   const updateImage = (id: string, attrs: Partial<ImageItem>) => {
+    if (currentTool === 'hand') return
+
     const newImages = images.map((img) =>
       img.id === id ? { ...img, ...attrs } : img
     )
@@ -96,15 +98,27 @@ const CanvasPlayground = () => {
 
   // 选择图片
   const selectImage = (id: string) => {
+    if (currentTool === 'hand') return
     setSelectedId(id)
   }
 
   // 工具栏处理函数
   const handleToolChange = (tool: string) => {
     setCurrentTool(tool)
+
     if (tool === 'hand') {
-      // 切换到手型工具时，取消选择
       setSelectedId(null)
+      const stage = stageRef.current
+      if (stage) {
+        const container = stage.container()
+        container.style.cursor = 'grab'
+      }
+    } else {
+      const stage = stageRef.current
+      if (stage) {
+        const container = stage.container()
+        container.style.cursor = 'default'
+      }
     }
   }
 
@@ -278,6 +292,21 @@ const CanvasPlayground = () => {
     const stage = stageRef.current
     if (!stage) return
 
+    if (currentTool === 'hand') {
+      const currentPos = stage.position()
+      const sensitivity = 1
+
+      const newPos = {
+        x: currentPos.x - e.evt.deltaX * sensitivity,
+        y: currentPos.y - e.evt.deltaY * sensitivity,
+      }
+
+      stage.position(newPos)
+      stage.batchDraw()
+      setStagePosition(newPos)
+      return
+    }
+
     const now = Date.now()
     const deltaY = e.evt.deltaY
     const deltaX = e.evt.deltaX
@@ -312,29 +341,14 @@ const CanvasPlayground = () => {
     if (isTouchpad) {
       // 触控板：执行平移操作
       const currentPos = stage.position()
-      const sensitivity = 1 // 调整平移敏感度
-
       const newPos = {
-        x: currentPos.x - deltaX * sensitivity,
-        y: currentPos.y - deltaY * sensitivity,
+        x: currentPos.x - e.evt.deltaX,
+        y: currentPos.y - e.evt.deltaY,
       }
 
-      // 可选：添加边界限制
-      const bounds = {
-        minX: -stageSize.width,
-        maxX: stageSize.width,
-        minY: -stageSize.height,
-        maxY: stageSize.height,
-      }
-
-      const clampedPos = {
-        x: Math.max(bounds.minX, Math.min(bounds.maxX, newPos.x)),
-        y: Math.max(bounds.minY, Math.min(bounds.maxY, newPos.y)),
-      }
-
-      stage.position(clampedPos)
+      stage.position(newPos)
       stage.batchDraw()
-      setStagePosition(clampedPos)
+      setStagePosition(newPos)
     } else {
       // 鼠标滚轮：执行缩放操作
       const oldScale = stage.scaleX()
@@ -369,9 +383,87 @@ const CanvasPlayground = () => {
   // 点击空白区域取消选择
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (e.target === e.target.getStage()) {
-      setSelectedId(null)
+      if (currentTool !== 'hand') {
+        setSelectedId(null)
+      }
     }
   }
+
+  // Stage 拖拽开始
+  const handleStageDragStart = () => {
+    const stage = stageRef.current
+    if (stage && currentTool === 'hand') {
+      const container = stage.container()
+      container.style.cursor = 'grabbing'
+    }
+  }
+
+  // Stage 拖拽结束
+  const handleStageDragEnd = () => {
+    const stage = stageRef.current
+    if (stage && currentTool === 'hand') {
+      const container = stage.container()
+      container.style.cursor = 'grab'
+      setStagePosition(stage.position())
+    }
+  }
+
+  // 键盘快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key.toLowerCase()) {
+        case 'v':
+          if (!e.ctrlKey && !e.metaKey) {
+            setCurrentTool('select')
+            e.preventDefault()
+          }
+          break
+        case 'h':
+          if (!e.ctrlKey && !e.metaKey) {
+            handleToolChange('hand')
+            e.preventDefault()
+          }
+          break
+      }
+
+      if (currentTool === 'hand') return
+
+      if (selectedId) {
+        switch (e.key) {
+          case 'Delete':
+          case 'Backspace':
+            setImages((prev) => prev.filter((img) => img.id !== selectedId))
+            setSelectedId(null)
+            break
+        }
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case '=':
+          case '+':
+            e.preventDefault()
+            handleZoomIn()
+            break
+          case '-':
+            e.preventDefault()
+            handleZoomOut()
+            break
+          case '0':
+            e.preventDefault()
+            handleZoomTo100()
+            break
+          case '1':
+            e.preventDefault()
+            handleZoomToFit()
+            break
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedId, currentTool])
 
   return (
     <div
@@ -400,10 +492,12 @@ const CanvasPlayground = () => {
         width={stageSize.width}
         height={stageSize.height}
         ref={stageRef}
-        draggable={currentTool === 'hand'} // 只有手型工具时才能拖拽
+        draggable={currentTool === 'hand'}
         onWheel={handleWheel}
         onClick={handleStageClick}
         onTap={handleStageClick}
+        onDragStart={handleStageDragStart}
+        onDragEnd={handleStageDragEnd}
         style={{
           backgroundColor: '#f8f9fa',
           cursor: currentTool === 'hand' ? 'grab' : 'default',
@@ -417,10 +511,32 @@ const CanvasPlayground = () => {
               onUpdate={updateImage}
               onSelect={selectImage}
               isSelected={selectedId === image.id}
+              currentTool={currentTool}
             />
           ))}
         </Layer>
       </Stage>
+
+      {currentTool === 'hand' && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>✋</span>
+          <span>手型工具模式 - 只能移动画布</span>
+        </div>
+      )}
     </div>
   )
 }

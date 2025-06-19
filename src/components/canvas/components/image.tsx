@@ -10,6 +10,8 @@ interface CanvasImageProps {
   image: ImageItem
   onUpdate: (id: string, attrs: Partial<ImageItem>) => void
   onSelect: (id: string) => void
+  isSelected: boolean
+  currentTool?: string // 新增：当前工具类型
 }
 
 const primaryColor = '#3582FF'
@@ -18,50 +20,94 @@ const CanvasImage: React.FC<CanvasImageProps> = ({
   image,
   onUpdate,
   onSelect,
+  isSelected,
+  currentTool = 'select', // 默认为选择工具
 }) => {
   const [img] = useImage(image.url, 'anonymous')
-  const imageRef = useRef<Konva.Image>(null) // 修复类型定义
-  const [isHover, setIsHover] = useState(false)
-  const [isSelected, setIsSelected] = useState(false)
+  const imageRef = useRef<Konva.Image>(null)
   const transformerRef = useRef<Konva.Transformer>(null)
+  const [isHover, setIsHover] = useState(false)
+
+  // 当前工具是否为手型工具
+  const isHandTool = currentTool === 'hand'
+
+  // 当选中状态改变时，更新 Transformer
+  useEffect(() => {
+    if (
+      isSelected &&
+      !isHandTool &&
+      transformerRef.current &&
+      imageRef.current
+    ) {
+      // 只有在非手型工具时才显示 transformer
+      transformerRef.current.nodes([imageRef.current])
+      transformerRef.current.getLayer()?.batchDraw()
+    }
+  }, [isSelected, isHandTool])
 
   const handleMouseOver = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isHandTool) return // 手型工具时不显示 hover 效果
+
     setIsHover(true)
+    const stage = e.target.getStage()
+    if (stage) {
+      const container = stage.container()
+      container.style.cursor = 'pointer'
+    }
   }
 
-  const handleSelect = () => {
-    setIsSelected(true)
+  const handleMouseLeave = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (isHandTool) return
+
+    setIsHover(false)
+    const stage = e.target.getStage()
+    if (stage) {
+      const container = stage.container()
+      container.style.cursor = 'default'
+    }
+  }
+
+  const handleClick = () => {
+    if (isHandTool) return // 手型工具时不能选择图片
     onSelect(image.id)
   }
 
-  const handleTransformEnd = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleDragStart = () => {
+    if (isHandTool) return // 手型工具时不能拖拽图片
+    onUpdate(image.id, { isDragging: true })
+    setIsHover(false)
+  }
+
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
+    if (isHandTool) return
+
+    onUpdate(image.id, {
+      isDragging: false,
+      x: e.target.x(),
+      y: e.target.y(),
+    })
+  }
+
+  const handleTransformEnd = () => {
+    if (isHandTool) return // 手型工具时不能变换图片
+
     const node = imageRef.current
     if (!node) return
 
     const scaleX = node.scaleX()
     const scaleY = node.scaleY()
 
-    // 重置缩放并更新宽高
     node.scaleX(1)
     node.scaleY(1)
 
     onUpdate(image.id, {
       x: node.x(),
       y: node.y(),
-      width: Math.max(5, node.width() * scaleX),
-      height: Math.max(5, node.height() * scaleY),
+      width: Math.max(10, node.width() * scaleX),
+      height: Math.max(10, node.height() * scaleY),
       rotation: node.rotation(),
     })
   }
-
-  // 当选中状态改变时，更新 Transformer
-  useEffect(() => {
-    if (isSelected && transformerRef.current && imageRef.current) {
-      // 将 transformer 附加到选中的图片
-      transformerRef.current.nodes([imageRef.current])
-      transformerRef.current.getLayer()?.batchDraw()
-    }
-  }, [isSelected])
 
   return (
     <Group>
@@ -72,56 +118,62 @@ const CanvasImage: React.FC<CanvasImageProps> = ({
         y={image.y}
         width={image.width}
         height={image.height}
-        draggable
+        rotation={image.rotation}
+        scaleX={image.scaleX}
+        scaleY={image.scaleY}
+        // 根据工具类型控制交互
+        draggable={!isHandTool} // 手型工具时禁用拖拽
+        listening={!isHandTool} // 手型工具时禁用所有事件监听
         onMouseOver={handleMouseOver}
-        onMouseLeave={() => setIsHover(false)}
-        onClick={handleSelect}
-        onTap={handleSelect}
-        onDragStart={() => {
-          onUpdate(image.id, { isDragging: true })
-        }}
-        onDragEnd={(e) => {
-          onUpdate(image.id, {
-            isDragging: false,
-            x: e.target.x(),
-            y: e.target.y(),
-          })
-        }}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+        onTap={handleClick}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onTransformEnd={handleTransformEnd}
-        // 选中时的样式
-        stroke={isSelected || isHover ? primaryColor : undefined}
-        strokeWidth={isSelected || isHover ? 3 : 0}
-        shadowColor={isHover ? primaryColor : undefined}
+        // 样式效果 - 手型工具时不显示
+        stroke={
+          !isHandTool && isSelected
+            ? primaryColor
+            : !isHandTool && isHover
+            ? primaryColor
+            : undefined
+        }
+        strokeWidth={
+          !isHandTool && (isSelected || isHover)
+            ? 2
+            : !isHandTool && isHover
+            ? 2
+            : 0
+        }
+        shadowColor={!isHandTool && isSelected ? primaryColor : undefined}
       />
-      {isSelected && (
+
+      {/* Transformer 组件 - 只在选中且非手型工具时显示 */}
+      {isSelected && !isHandTool && (
         <Transformer
           ref={transformerRef}
-          flipEnabled={false} // 禁用翻转
+          flipEnabled={false}
           boundBoxFunc={(oldBox, newBox) => {
-            // 限制最小尺寸
             if (Math.abs(newBox.width) < 20 || Math.abs(newBox.height) < 20) {
               return oldBox
             }
             return newBox
           }}
-          // 自定义 Transformer 样式
           borderStroke={primaryColor}
-          // borderStrokeWidth={3}
+          borderStrokeWidth={2}
           anchorStroke={primaryColor}
-          // anchorStrokeWidth={1}
+          anchorStrokeWidth={2}
           anchorFill='#ffffff'
-          anchorSize={6}
+          anchorSize={8}
           anchorCornerRadius={4}
-          // 启用的控制点
           enabledAnchors={[
             'top-left',
             'top-right',
             'bottom-left',
             'bottom-right',
           ]}
-          // 旋转控制点
           rotateEnabled={false}
-          // 等比缩放（按住 Shift 键）
           keepRatio={false}
         />
       )}

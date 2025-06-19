@@ -27,11 +27,15 @@ interface ToolBarProps {
   onExport?: () => void
 }
 
+// 定义主色调
+const primaryColor = '#3b82f6' // 蓝色主题
+const primaryColorHover = '#2563eb'
+const primaryColorLight = '#dbeafe'
+const primaryColorDark = '#1d4ed8'
+
 const tools = [
   { id: 'select', icon: MousePointer, tooltip: '选择工具 (V)' },
   { id: 'hand', icon: Hand, tooltip: '抓手工具 (H)' },
-  // { id: 'frame', icon: Square, tooltip: '框架工具 (F)' },
-  // { id: 'shape', icon: Square, tooltip: '形状工具' },
 ]
 
 const ToolButton = ({
@@ -52,8 +56,8 @@ const ToolButton = ({
     title={tooltip}
     className={`
       cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
-      hover:bg-gray-100 active:scale-95
-      ${isActive ? 'bg-gray-100' : 'text-gray-600 hover:text-gray-800'}
+      active:scale-95
+      ${isActive ? 'bg-gray-200' : 'text-gray-600 hover:bg-gray-100'}
       ${className}
     `}
   >
@@ -65,7 +69,6 @@ const ToolBar: React.FC<ToolBarProps> = ({
   currentTool = 'select',
   zoomLevel = 75,
   onToolChange,
-  onZoomChange,
   onZoomIn,
   onZoomOut,
   onZoomToFit,
@@ -86,7 +89,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
           onZoomIn?.()
           setShowZoomMenu(false)
         }}
-        className='w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between'
+        className='cursor-pointer w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between transition-colors'
       >
         <span>放大</span>
         <span className='text-gray-400'>⌘ +</span>
@@ -96,7 +99,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
           onZoomOut?.()
           setShowZoomMenu(false)
         }}
-        className='w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between'
+        className='cursor-pointer w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between transition-colors'
       >
         <span>缩小</span>
         <span className='text-gray-400'>⌘ -</span>
@@ -106,7 +109,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
           onZoomTo100?.()
           setShowZoomMenu(false)
         }}
-        className='w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between'
+        className='cursor-pointer w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between transition-colors'
       >
         <span>缩放到 100%</span>
         <span className='text-gray-400'>⌘ 0</span>
@@ -116,7 +119,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
           onZoomTo200?.()
           setShowZoomMenu(false)
         }}
-        className='w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between'
+        className='cursor-pointer w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between transition-colors'
       >
         <span>缩放到 200%</span>
         <span className='text-gray-400'>⌘ 2</span>
@@ -126,7 +129,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
           onZoomToFit?.()
           setShowZoomMenu(false)
         }}
-        className='w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between'
+        className='cursor-pointer w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between transition-colors'
       >
         <span>适应屏幕</span>
         <span className='text-gray-400'>⌘ 1</span>
@@ -147,15 +150,7 @@ const ToolBar: React.FC<ToolBarProps> = ({
 
   return (
     <div className='fixed top-6 left-0 right-0 w-full z-50 flex justify-center items-center'>
-      <div
-        className='flex bg-white h-12 items-center px-3 gap-1 shadow-lg'
-        style={{
-          border: '1px solid #E5E5E5',
-          borderRadius: '12px',
-          backdropFilter: 'blur(8px)',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        }}
-      >
+      <div className='flex bg-white h-12 items-center px-3 gap-1 shadow-lg border border-gray-200 rounded-[12px]'>
         {/* 工具选择区域 */}
         <div className='flex items-center gap-1'>
           {tools.map((tool) => (
@@ -182,11 +177,14 @@ const ToolBar: React.FC<ToolBarProps> = ({
           <div className='relative'>
             <button
               onClick={() => setShowZoomMenu(!showZoomMenu)}
-              className='flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors'
+              className='flex cursor-pointer hover:bg-gray-200 items-center gap-1 px-3 py-1.5 rounded-lg transition-colors'
+              style={{
+                backgroundColor: showZoomMenu
+                  ? 'var(--primary-color)'
+                  : 'transparent',
+              }}
             >
-              <span className='text-sm font-medium text-gray-700'>
-                {zoomLevel}%
-              </span>
+              <span className='text-sm font-medium'>{zoomLevel}%</span>
               <ChevronDown size={14} className='text-gray-500' />
             </button>
 
@@ -206,10 +204,10 @@ const ToolBar: React.FC<ToolBarProps> = ({
 
         <Divider />
 
-        {/* 播放和导出 */}
+        {/* 导出按钮 */}
         <button
           onClick={onExport}
-          className='flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gray-100 transition-colors text-sm font-medium cursor-pointer text-black'
+          className='flex items-center gap-2 px-4 py-1.5 rounded-lg transition-all duration-200 text-sm font-medium cursor-pointer active:scale-95 bg-gray-200'
         >
           <Download size={14} />
           Export
