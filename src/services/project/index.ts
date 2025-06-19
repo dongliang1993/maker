@@ -4,19 +4,18 @@ import {
   useMutation,
   useQuery,
 } from '@tanstack/react-query'
+import { request } from '../request'
 
 import type { Project } from '@/database/types'
 
 export async function getProject(projectId: string): Promise<Project | null> {
   try {
-    const response = await fetch(`/api/projects/${projectId}`)
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null
-      }
-      throw new Error(`获取项目失败: ${response.statusText}`)
-    }
-    return response.json()
+    const project = await request<Project>({
+      url: `/api/projects/${projectId}`,
+      method: 'GET',
+    })
+
+    return project
   } catch (error) {
     console.error('获取项目失败:', error)
     return null
@@ -25,13 +24,12 @@ export async function getProject(projectId: string): Promise<Project | null> {
 
 export async function getProjectList(): Promise<Project[]> {
   try {
-    const response = await fetch('/api/projects')
-    if (!response.ok) {
-      throw new Error(`获取项目列表失败: ${response.statusText}`)
-    }
+    const projects = await request<Project[]>({
+      url: '/api/projects',
+      method: 'GET',
+    })
 
-    const data = await response.json()
-    return data.data
+    return projects
   } catch (error) {
     console.error('获取项目列表失败:', error)
     return []
@@ -42,19 +40,18 @@ export async function updateProject(
   projectId: string,
   data: Partial<Project>
 ): Promise<Project> {
-  const response = await fetch(`/api/projects/${projectId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  })
+  try {
+    const project = await request<Project>({
+      url: `/api/projects/${projectId}`,
+      method: 'POST',
+      data,
+    })
 
-  if (!response.ok) {
-    throw new Error(`更新项目失败: ${response.statusText}`)
+    return project
+  } catch (error) {
+    console.error('更新项目失败:', error)
+    return data as Project
   }
-
-  return response.json()
 }
 
 type ProjectQueryKey = ['project', string]

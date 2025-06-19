@@ -41,10 +41,10 @@ const StylePick = ({ onStylePick }: StylePickProps) => {
       <Popover.Trigger>
         <IconButton
           size='2'
-          radius='full'
+          radius='large'
           variant='outline'
           color='gray'
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: 'pointer', borderRadius: 'var(--radius-4)' }}
         >
           <Tooltip content='Pick a style'>
             <CookieIcon width='18' height='18' />

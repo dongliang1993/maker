@@ -1,4 +1,5 @@
 import { getDatabase } from '@/database'
+import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -6,14 +7,17 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // const { userId } = await auth()
-    // if (!userId) {
-    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
-    // }
+    let { userId } = await auth()
+    if (!userId) {
+      userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
+
+      // return NextResponse.json(
+      //   { error: true, message: 'Unauthorized or expired' },
+      //   { status: 401 }
+      // )
+    }
 
     const { id } = await params
-
-    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
 
     const db = getDatabase('server')
     const project = await db.projects.findById(id)

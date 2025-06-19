@@ -127,31 +127,35 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   return (
     <Box
       style={{
-        padding: '12px 16px',
+        borderRadius: '24px',
+        padding: '0 12px 12px',
         boxShadow: 'rgba(193, 193, 193, 0.25) 0px 4px 81.6px 0px',
         border: '1px solid #e9e9e9',
       }}
       className='fixed bottom-10 rounded-xl bg-white w-1/2 left-1/3 -translate-x-1/2'
     >
-      <Flex direction='column' gap='3'>
+      <Flex direction='column' gap='2'>
         {/* 图片列表 */}
-        <Flex direction='column' gap='3'>
-          <Flex direction='row' gap='3'>
-            {renderStyle()}
-            {imageUrl && (
-              <Avatar size='5' src={imageUrl} radius='medium' fallback='IMG' />
-            )}
-          </Flex>
+        <Flex direction='row' gap='3'>
+          {renderStyle()}
+          {imageUrl && (
+            <Avatar size='5' src={imageUrl} radius='medium' fallback='IMG' />
+          )}
         </Flex>
         {/* 输入区域 */}
         <TextArea
-          placeholder='Please enter your design requirements...'
+          placeholder='Describe your design requirements...'
           size='2'
           variant='surface'
           resize='none'
           value={input}
           onChange={handleInput}
           onKeyDown={handleKeyPress}
+          style={{
+            boxShadow: 'none',
+            outline: 'none',
+            border: 'none',
+          }}
         />
         <Flex justify='between' align='center'>
           <Flex gap='2'>
@@ -163,10 +167,13 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
           </Flex>
           <IconButton
             size='2'
-            radius='large'
             variant='soft'
+            radius='large'
             onClick={handleSendMessage}
             disabled={!input.trim()}
+            style={{
+              borderRadius: 'var(--radius-4)',
+            }}
           >
             <ArrowUpIcon width='20' height='20' />
           </IconButton>

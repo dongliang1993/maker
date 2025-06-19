@@ -7,12 +7,13 @@ import { getDatabase } from '@/database'
 // 获取项目列表
 export async function GET() {
   try {
-    // const { userId } = await auth()
-    // if (!userId) {
-    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
-    // }
-
-    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json(
+        { error: true, message: 'Auth failed' },
+        { status: 200 }
+      )
+    }
 
     const db = getDatabase('server')
     const result = await db.projects.findAll({ userId })
@@ -38,12 +39,13 @@ export async function GET() {
 // 创建新项目
 export async function POST(request: Request) {
   try {
-    // const { userId } = await auth()
-    // if (!userId) {
-    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
-    // }
-
-    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json(
+        { error: true, message: 'Auth failed' },
+        { status: 200 }
+      )
+    }
 
     const body = await request.json()
     const { name = 'untitled' } = body

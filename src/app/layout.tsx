@@ -1,13 +1,14 @@
 'use client'
 
 import Header from '@/components/header'
+import { LoginModal } from '@/components/login-modal'
 import { Providers } from '@/components/Providers'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Flex } from '@radix-ui/themes'
-import '@radix-ui/themes/styles.css'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { usePathname } from 'next/navigation'
 
+import '@radix-ui/themes/styles.css'
 import './globals.css'
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
                 paddingTop: isCanvasRoute ? 0 : '50px',
               }}
             >
+              <LoginModal />
               {children}
             </Flex>
           </Providers>

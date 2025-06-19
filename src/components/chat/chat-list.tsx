@@ -103,7 +103,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                 return (
                   <Box
                     key={key}
-                    className='rounded-md py-3 px-4 gap-2'
+                    className='rounded-md py-3 px-4 gap-2 pr-4 max-w-[80%]'
                     style={{
                       background:
                         'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
@@ -121,7 +121,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
     return (
       <div className='flex justify-end w-full' key={msg.id}>
-        <div className='rounded-md py-3 px-4 bg-[#4A535F] text-white'>
+        <div className='rounded-md py-3 px-4 bg-[#4A535F] text-white max-w-[80%]'>
           <Text
             size='2'
             className='cursor-text'

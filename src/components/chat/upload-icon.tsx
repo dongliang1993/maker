@@ -35,7 +35,7 @@ const UploadIcon = ({
         radius='full'
         variant='outline'
         color='gray'
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', borderRadius: 'var(--radius-4)' }}
         onClick={() => fileInputRef.current?.click()}
         loading={isUploading}
       >

@@ -12,3 +12,6 @@ export function sanitizeText(text: string) {
 export function generateUUID() {
   return crypto.randomUUID()
 }
+
+export const isFunction = (val: any) =>
+  toString.call(val) === '[object Function]'
