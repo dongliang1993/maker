@@ -22,7 +22,7 @@ const db = new Database('server')
 export async function saveMessages({
   messages,
 }: {
-  messages: Array<Omit<DBMessage, 'id' | 'created_at'>>
+  messages: Array<Omit<DBMessage, 'created_at'>>
 }) {
   try {
     return await db.chatHistory.upsertMany(messages)

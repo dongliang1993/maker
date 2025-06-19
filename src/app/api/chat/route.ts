@@ -1,6 +1,6 @@
-import { auth } from '@clerk/nextjs/server'
 import { appendClientMessage, appendResponseMessages } from 'ai'
 import { NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
 
 import { getDatabase } from '@/database'
@@ -21,10 +21,12 @@ const getChatHistorySchema = z.object({
  */
 export async function GET(request: Request) {
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 })
-    }
+    // const { userId } = await auth()
+    // if (!userId) {
+    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
+    // }
+
+    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
 
     const { searchParams } = new URL(request.url)
 
@@ -69,10 +71,11 @@ export async function POST(request: Request) {
   let requestBody: PostRequestBody
 
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 })
-    }
+    // const { userId } = await auth()
+    // if (!userId) {
+    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
+    // }
+    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
 
     const json = await request.json()
 
@@ -93,11 +96,13 @@ export async function POST(request: Request) {
     await saveMessages({
       messages: [
         {
+          id: uuidv4(),
           user_id: userId,
           project_id: projectId,
           role: 'user',
           content: message.content,
           tool_content: [],
+          parts: message.parts,
           name: '',
         },
       ],
@@ -107,6 +112,9 @@ export async function POST(request: Request) {
       messages,
       styleList,
       imageList,
+      onStepFinish: async (step) => {
+        console.log('step', step)
+      },
       onFinish: async (response) => {
         try {
           const [, assistantMessage] = appendResponseMessages({
@@ -117,10 +125,12 @@ export async function POST(request: Request) {
           await saveMessages({
             messages: [
               {
+                id: uuidv4(),
                 user_id: userId,
                 project_id: projectId,
                 role: assistantMessage.role,
                 content: assistantMessage.content,
+                parts: assistantMessage.parts,
                 tool_content: [],
                 name: '',
               },

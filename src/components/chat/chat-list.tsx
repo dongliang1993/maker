@@ -29,64 +29,66 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
   const renderUIMessage = (msg: UIMessage) => {
     if (msg.role === 'assistant') {
-      const hasContent =
-        Array.isArray(msg.tool_content) && msg.tool_content.length > 0
-
       return (
         <Container key={msg.id}>
           <Logo size={2} className='mb-2' />
-          <Box
-            className='rounded-md py-3 px-4 gap-2'
-            style={{
-              background: hasContent
-                ? 'rgb(241, 245, 235)'
-                : 'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
-            }}
-          >
+          <Flex direction='column' gap='5'>
             {msg.parts.map((part, index) => {
               const key = `message-part-${index}`
               const { type } = part
 
-              if (type === 'text') {
-                return (
-                  <Markdown key={key}>
-                    {sanitizeText(part?.text ?? '')}
-                  </Markdown>
-                )
-              }
-            })}
+              if (type === 'tool-invocation') {
+                const toolName = part.toolInvocation.toolName
+                // @ts-expect-error: todo add type conversion from ToolInvocation to ToolInvocationUIPart
+                const imageUrl = part.toolInvocation?.result?.imageUrl
 
-            {msg.name && (
-              <span
-                className='inline-flex mb-3 px-4 rounded-2xl font-bold text-sm box-border bg-white leading-7'
-                style={{
-                  color: 'rgb(136, 168, 87)',
-                }}
-              >
-                {msg.name}
-              </span>
-            )}
-
-            {hasContent &&
-              msg.tool_content?.map((content, index) => {
                 return (
-                  <Box key={index}>
-                    <Box key={index}>
-                      {content.eventData.artifact.map((artifact) => (
+                  <Box
+                    key={key}
+                    className='rounded-md py-3 px-4 gap-2'
+                    style={{
+                      background: 'rgb(241, 245, 235)',
+                    }}
+                  >
+                    <span
+                      className='inline-flex mb-3 px-4 rounded-2xl font-bold text-sm box-border bg-white leading-7'
+                      style={{
+                        color: 'rgb(136, 168, 87)',
+                      }}
+                    >
+                      {toolName}
+                    </span>
+                    {imageUrl && (
+                      <Box key={imageUrl}>
                         <Avatar
-                          key={artifact.imageUrl}
-                          size='7'
-                          src={artifact.imageUrl}
-                          radius='medium'
+                          size='9'
+                          src={imageUrl}
+                          radius='small'
                           fallback='IMG'
                           className='cursor-pointer hover:scale-110 transition-all duration-300'
                         />
-                      ))}
-                    </Box>
+                      </Box>
+                    )}
                   </Box>
                 )
-              })}
-          </Box>
+              }
+
+              if (type === 'text') {
+                return (
+                  <Box
+                    key={key}
+                    className='rounded-md py-3 px-4 gap-2'
+                    style={{
+                      background:
+                        'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
+                    }}
+                  >
+                    <Markdown>{sanitizeText(part?.text ?? '')}</Markdown>
+                  </Box>
+                )
+              }
+            })}
+          </Flex>
         </Container>
       )
     }

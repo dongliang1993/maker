@@ -16,6 +16,7 @@ export interface DBMessage {
   user_id: string
   project_id: string
   content?: string
+  parts?: any[]
   tool_content?: ToolContent[]
   image_url?: string
   role: 'user' | 'assistant' | 'system' | 'tool' | 'data'
