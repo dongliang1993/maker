@@ -7,7 +7,8 @@ import {
   Spinner,
   Text,
 } from '@radix-ui/themes'
-import { useEffect } from 'react'
+import { Image } from 'antd'
+import { useEffect, useState } from 'react'
 
 import { Logo } from '@/components/logo'
 import { sanitizeText } from '@/lib/utils'
@@ -22,10 +23,24 @@ type ChatListProps = {
 
 export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
   const messages = useChatStore((state) => state.messages)
+  const [previewImage, setPreviewImage] = useState<{
+    visible: boolean
+    imageUrl: string
+  }>({
+    visible: false,
+    imageUrl: '',
+  })
 
   console.log(messages, 'messages')
 
   const messagesLength = messages.length
+
+  const handlePreviewImage = (imageUrl: string) => {
+    setPreviewImage({
+      visible: true,
+      imageUrl,
+    })
+  }
 
   const renderUIMessage = (msg: UIMessage) => {
     if (msg.role === 'assistant') {
@@ -50,24 +65,35 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                       background: 'rgb(241, 245, 235)',
                     }}
                   >
-                    <span
-                      className='inline-flex mb-3 px-4 rounded-2xl font-bold text-sm box-border bg-white leading-7'
-                      style={{
-                        color: 'rgb(136, 168, 87)',
-                      }}
-                    >
-                      {toolName}
-                    </span>
+                    <Box>
+                      <span
+                        className='inline-flex mb-3 px-4 rounded-2xl font-bold text-sm box-border bg-white leading-7'
+                        style={{
+                          color: 'rgb(136, 168, 87)',
+                        }}
+                      >
+                        {toolName}
+                      </span>
+                    </Box>
+
                     {imageUrl && (
-                      <Box key={imageUrl}>
+                      <div
+                        key={imageUrl}
+                        style={{
+                          display: 'inline-block',
+                          borderRadius: 'var(--radius-6)',
+                          overflow: 'hidden',
+                        }}
+                      >
                         <Avatar
                           size='9'
                           src={imageUrl}
                           radius='small'
                           fallback='IMG'
                           className='cursor-pointer hover:scale-110 transition-all duration-300'
+                          onClick={() => handlePreviewImage(imageUrl)}
                         />
-                      </Box>
+                      </div>
                     )}
                   </Box>
                 )
@@ -109,13 +135,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
           </Text>
           {msg.image_list?.map((image) => (
             <Box style={{ marginTop: '8px' }} key={image.imageUrl}>
-              <Avatar
-                size='7'
-                src={image.imageUrl}
-                radius='medium'
-                fallback='IMG'
-                className='cursor-pointer hover:scale-110 transition-all duration-300'
-              />
+              <Image src={image.imageUrl} alt='image' />
             </Box>
           ))}
         </div>
@@ -165,6 +185,21 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
           messages.map(renderUIMessage)
         )}
       </Flex>
+      <Image
+        style={{ display: 'none' }}
+        src={previewImage.imageUrl}
+        alt='preview image'
+        preview={{
+          visible: previewImage.visible,
+          src: previewImage.imageUrl,
+          onVisibleChange: (value) => {
+            setPreviewImage({
+              visible: value,
+              imageUrl: previewImage.imageUrl,
+            })
+          },
+        }}
+      />
     </ScrollArea>
   )
 }
