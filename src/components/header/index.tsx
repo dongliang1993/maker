@@ -6,15 +6,13 @@ const Header = () => {
   const { isSignedIn } = useUser()
   const router = useRouter()
 
-  console.log('isSignedIn', isSignedIn)
-
   const handleClickLogo = () => {
     router.push('/projects')
   }
 
   return (
     <header className='w-full top-0 bg-white border-b border-gray-300 z-50'>
-      <div className='mx-auto flex pt-3 pb-3 px-10'>
+      <div className='mx-auto flex pt-3 pb-3 px-10 h-15'>
         <div
           className='flex items-center hover:cursor-pointer'
           onClick={handleClickLogo}

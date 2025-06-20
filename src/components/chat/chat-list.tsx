@@ -8,11 +8,14 @@ import {
   Text,
 } from '@radix-ui/themes'
 import { Image } from 'antd'
+import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 import { Logo } from '@/components/logo'
+import { useScrollToBottom } from '@/hooks/useScrollToBottom'
 import { sanitizeText } from '@/lib/utils'
 import { Markdown } from '../markdown'
+import { ThinkingMessage } from './thinking-message'
 
 import { UIMessage, useChatStore } from '@/lib/use-chat'
 
@@ -23,6 +26,7 @@ type ChatListProps = {
 
 export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
   const messages = useChatStore((state) => state.messages)
+  const status = useChatStore((state) => state.status)
   const [previewImage, setPreviewImage] = useState<{
     visible: boolean
     imageUrl: string
@@ -30,6 +34,12 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
     visible: false,
     imageUrl: '',
   })
+  const {
+    containerRef,
+    endRef: messagesEndRef,
+    onViewportEnter,
+    onViewportLeave,
+  } = useScrollToBottom()
 
   console.log(messages, 'messages')
 
@@ -62,6 +72,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                     key={key}
                     className='rounded-md py-3 px-4 gap-2'
                     style={{
+                      borderRadius: 'var(--radius-6)',
                       background: 'rgb(241, 245, 235)',
                     }}
                   >
@@ -79,6 +90,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                     {imageUrl && (
                       <div
                         key={imageUrl}
+                        className='relative group'
                         style={{
                           display: 'inline-block',
                           borderRadius: 'var(--radius-6)',
@@ -90,8 +102,18 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                           src={imageUrl}
                           radius='small'
                           fallback='IMG'
-                          className='cursor-pointer hover:scale-110 transition-all duration-300'
+                          className='cursor-pointer hover:scale-110 transition-all duration-300 mas'
                           onClick={() => handlePreviewImage(imageUrl)}
+                        />
+                        <div
+                          className='
+                              absolute left-0 bottom-0 right-0
+                              w-full h-8
+                              opacity-0 group-hover:opacity-100
+                              bg-black/40
+                              blur-md
+                              transition-all duration-300
+                            '
                         />
                       </div>
                     )}
@@ -105,6 +127,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                     key={key}
                     className='rounded-md py-3 px-4 gap-2 pr-4 max-w-[80%]'
                     style={{
+                      borderRadius: 'var(--radius-6)',
                       background:
                         'linear-gradient(90deg,#f5f5f5 0%,#fbfbfb 100%)',
                     }}
@@ -121,7 +144,12 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
     return (
       <div className='flex justify-end w-full' key={msg.id}>
-        <div className='rounded-md py-3 px-4 bg-[#4A535F] text-white max-w-[80%]'>
+        <div
+          className='py-3 px-4 bg-[#4A535F] text-white max-w-[80%]'
+          style={{
+            borderRadius: 'var(--radius-6)',
+          }}
+        >
           <Text
             size='2'
             className='cursor-text'
@@ -160,12 +188,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
       type='hover'
       id='chat-list'
       className='relative'
-      style={{
-        // @ts-expect-error 忽略类型错误
-        '--radix-scroll-area-thumb-width': '0px',
-        '--radix-scrollbar-hover-width': '0px',
-        '--radix-scrollbar-hover-color': 'rgba(0, 0, 0, 0.1)',
-      }}
+      ref={containerRef}
     >
       <Flex direction='column' gap='5'>
         {loading ? (
@@ -184,6 +207,17 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
         ) : (
           messages.map(renderUIMessage)
         )}
+
+        {status === 'submitted' &&
+          messages.length > 0 &&
+          messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+
+        <motion.div
+          ref={messagesEndRef}
+          className='shrink-0 min-w-[24px] h-[0px]'
+          onViewportLeave={onViewportLeave}
+          onViewportEnter={onViewportEnter}
+        />
       </Flex>
       <Image
         style={{ display: 'none' }}

@@ -99,7 +99,7 @@ export default function CanvasPage() {
             {(width) => (
               <Flex
                 direction='column'
-                className='px-6 pt-2 pb-14 border-l border-gray-200 h-full w-full'
+                className='px-6 pt-4 border-l border-gray-200 h-full w-full'
                 style={{
                   width,
                 }}

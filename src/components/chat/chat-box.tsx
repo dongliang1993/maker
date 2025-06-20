@@ -11,6 +11,7 @@ import {
 } from '@radix-ui/themes'
 import React, { useState } from 'react'
 
+import { useScrollToBottom } from '@/hooks/useScrollToBottom'
 import StylePick from './style-pick'
 import UploadIcon from './upload-icon'
 
@@ -28,6 +29,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   const [style, setStyle] = useState<Style | null>(null)
   const { input, handleInputChange, handleSubmit, isLoading } = useChat()
 
+  const { scrollToBottom } = useScrollToBottom()
+
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     handleInputChange(e)
   }
@@ -37,23 +40,24 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   // 处理发送消息
   const handleSendMessage = () => {
     if (!input.trim() || isLoading) return
-    handleSubmit(undefined, {
-      body: {
-        projectId,
-        imageList: imageUrl ? [{ imageUrl }] : [],
-        content: input.trim(),
-        styleList: style
-          ? [
-              {
-                styleCoverUrl: style.url,
-                imagePrompt: style.prompt,
-                styleName: style.name,
-              },
-            ]
-          : [],
-      },
-      allowEmptySubmit: false,
-    })
+    // handleSubmit(undefined, {
+    //   body: {
+    //     projectId,
+    //     imageList: imageUrl ? [{ imageUrl }] : [],
+    //     content: input.trim(),
+    //     styleList: style
+    //       ? [
+    //           {
+    //             styleCoverUrl: style.url,
+    //             imagePrompt: style.prompt,
+    //             styleName: style.name,
+    //           },
+    //         ]
+    //       : [],
+    //   },
+    //   allowEmptySubmit: false,
+    // })
+    scrollToBottom()
   }
 
   // 处理按键事件

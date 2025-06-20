@@ -51,7 +51,7 @@ const StylePick = ({ onStylePick }: StylePickProps) => {
           </Tooltip>
         </IconButton>
       </Popover.Trigger>
-      <Popover.Content width='700px' height='500px'>
+      <Popover.Content width='700px'>
         <Flex
           justify='between'
           align='center'
@@ -65,10 +65,13 @@ const StylePick = ({ onStylePick }: StylePickProps) => {
           </Popover.Close>
         </Flex>
         <Grid
-          className='w-full h-full'
+          className='w-full overflow-y-auto'
           columns='4'
           gap='3'
           rows={`repeat(${row}, auto)`}
+          style={{
+            height: '400px',
+          }}
         >
           {PRESET_STYLES.map((style) => (
             <div

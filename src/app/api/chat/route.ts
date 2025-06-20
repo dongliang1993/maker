@@ -1,3 +1,4 @@
+import { auth } from '@clerk/nextjs/server'
 import { appendClientMessage, appendResponseMessages } from 'ai'
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
@@ -6,7 +7,7 @@ import { z } from 'zod'
 import { getDatabase } from '@/database'
 import { getMessagesByChatId, saveMessages } from '@/database/queries'
 import { DBMessage } from '@/database/types'
-import { OpenAI } from '@/lib/openai'
+import { GoogleAI } from '@/lib/google'
 
 import { postRequestBodySchema, type PostRequestBody } from './schema'
 
@@ -21,12 +22,10 @@ const getChatHistorySchema = z.object({
  */
 export async function GET(request: Request) {
   try {
-    // const { userId } = await auth()
-    // if (!userId) {
-    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
-    // }
-
-    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
 
     const { searchParams } = new URL(request.url)
 
@@ -71,11 +70,10 @@ export async function POST(request: Request) {
   let requestBody: PostRequestBody
 
   try {
-    // const { userId } = await auth()
-    // if (!userId) {
-    //   return NextResponse.json({ error: '未授权' }, { status: 401 })
-    // }
-    const userId = 'user_2yOSTkMNfOABnpLcDDnjdkjuuQE'
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
 
     const json = await request.json()
 
@@ -101,14 +99,14 @@ export async function POST(request: Request) {
           project_id: projectId,
           role: 'user',
           content: message.content,
-          tool_content: [],
           parts: message.parts,
+          tool_content: [],
           name: '',
         },
       ],
     })
 
-    const result = await OpenAI.completions({
+    const result = await GoogleAI.completions({
       messages,
       styleList,
       imageList,
