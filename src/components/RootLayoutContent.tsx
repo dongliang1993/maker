@@ -1,7 +1,7 @@
 'use client'
 
+import { Sidebar } from '@/components/side-bar'
 import { Flex } from '@radix-ui/themes'
-import { Sidebar } from '@/components/Sidebar'
 import { usePathname } from 'next/navigation'
 
 export function RootLayoutContent({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,9 @@ export function RootLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <Flex>
       <Sidebar />
-      <main style={{ width: '100%' }}>{children}</main>
+      <Flex flexGrow='1'>
+        <main style={{ width: '100%' }}>{children}</main>
+      </Flex>
     </Flex>
   )
 }

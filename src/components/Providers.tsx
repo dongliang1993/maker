@@ -1,9 +1,9 @@
 'use client'
 
 import { Theme } from '@radix-ui/themes'
-import { RootLayoutContent } from './RootLayoutContent'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PropsWithChildren, useState } from 'react'
+import { RootLayoutContent } from './RootLayoutContent'
 
 export function Providers({ children }: PropsWithChildren) {
   const [queryClient] = useState(
