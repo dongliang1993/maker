@@ -13,9 +13,9 @@ export default function ProjectsPage() {
   return (
     <Box
       px='8'
-      py='6'
+      pb='4'
       style={{
-        height: '100vh',
+        height: '100%',
         overflow: 'hidden',
       }}
     >

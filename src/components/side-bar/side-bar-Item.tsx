@@ -1,4 +1,4 @@
-import { Box, Button } from '@radix-ui/themes'
+import { Box, Button, Text } from '@radix-ui/themes'
 import Link from 'next/link'
 
 export const SidebarItem = ({
@@ -28,7 +28,9 @@ export const SidebarItem = ({
         <Box as='span' className='bg-white px-1 py-1 rounded-xl mr-1'>
           {icon}
         </Box>
-        {label}
+        <Text size='2' weight='medium' className='text-black'>
+          {label}
+        </Text>
       </Button>
     </Link>
   )

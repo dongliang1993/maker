@@ -34,20 +34,21 @@ export default function RootLayout({
       <html lang='zh-CN' suppressHydrationWarning>
         <body
           suppressHydrationWarning
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-y-hidden`}
         >
           <Providers>
             {!isCanvasRoute && <Header />}
             <Flex
               direction='column'
               style={{
-                height: '100%',
-                paddingTop: isCanvasRoute ? 0 : '50px',
+                height: 'calc(100vh - 60px)',
+                overflow: 'auto',
+                paddingTop: isCanvasRoute ? 0 : 'var(--space-5)',
               }}
             >
-              <LoginModal />
               {children}
             </Flex>
+            <LoginModal />
           </Providers>
         </body>
       </html>

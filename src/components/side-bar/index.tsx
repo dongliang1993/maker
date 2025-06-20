@@ -25,7 +25,7 @@ export function Sidebar() {
     >
       <SidebarItem
         icon={<BoxIcon width='24' height='24' />}
-        label='项目'
+        label='Projects'
         href='/projects'
         isActive={isActive('/projects')}
       />
