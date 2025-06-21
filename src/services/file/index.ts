@@ -1,8 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 
-interface UploadResult {
-  url: string
-}
+import { UploadResult } from '@/types/global'
 
 // API 调用函数
 const uploadImage = async (file: File): Promise<UploadResult> => {

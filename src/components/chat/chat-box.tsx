@@ -19,13 +19,14 @@ import { useChat } from '@/lib/use-chat'
 import { useUploadImage } from '@/services/file'
 
 import type { Style } from '@/constants/preset-styles'
+import type { UploadResult } from '@/services/file'
 
 interface ChatBoxProps {
   projectId: string
 }
 
 export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
-  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined)
+  const [attachments, setAttachments] = useState<UploadResult[]>([])
   const [style, setStyle] = useState<Style | null>(null)
   const { input, handleInputChange, handleSubmit, isLoading } = useChat()
 
@@ -40,23 +41,32 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
   // 处理发送消息
   const handleSendMessage = () => {
     if (!input.trim() || isLoading) return
-    // handleSubmit(undefined, {
-    //   body: {
-    //     projectId,
-    //     imageList: imageUrl ? [{ imageUrl }] : [],
-    //     content: input.trim(),
-    //     styleList: style
-    //       ? [
-    //           {
-    //             styleCoverUrl: style.url,
-    //             imagePrompt: style.prompt,
-    //             styleName: style.name,
-    //           },
-    //         ]
-    //       : [],
-    //   },
-    //   allowEmptySubmit: false,
-    // })
+    handleSubmit(undefined, {
+      experimental_attachments: attachments.map((attachment) => ({
+        url: attachment.url,
+        name: attachment.pathName,
+        contentType: attachment.contentType,
+      })),
+      body: {
+        projectId,
+        imageList: attachments.map((attachment) => ({
+          imageUrl: attachment.url,
+        })),
+        content: input.trim(),
+        styleList: style
+          ? [
+              {
+                styleCoverUrl: style.url,
+                imagePrompt: style.prompt,
+                styleName: style.name,
+              },
+            ]
+          : [],
+      },
+      allowEmptySubmit: false,
+    })
+    // setAttachments([])
+    setStyle(null)
     scrollToBottom()
   }
 
@@ -73,7 +83,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
     return new Promise((resolve, reject) => {
       uploadImage(file, {
         onSuccess: (result) => {
-          setImageUrl(result.url)
+          setAttachments((prev) => [...prev, result])
         },
         onError: (error) => {
           console.error('上传图片失败:', error)
@@ -132,7 +142,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
     <Box
       style={{
         borderRadius: '24px',
-        padding: '0 12px 12px',
+        padding: '12px 12px',
         boxShadow: 'rgba(193, 193, 193, 0.25) 0px 4px 81.6px 0px',
         border: '1px solid #e9e9e9',
       }}
@@ -142,9 +152,15 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
         {/* 图片列表 */}
         <Flex direction='row' gap='3'>
           {renderStyle()}
-          {imageUrl && (
-            <Avatar size='5' src={imageUrl} radius='medium' fallback='IMG' />
-          )}
+          {attachments?.map((attachment) => (
+            <Avatar
+              size='5'
+              key={attachment.pathName}
+              src={attachment.url}
+              radius='medium'
+              fallback='IMG'
+            />
+          ))}
         </Flex>
         {/* 输入区域 */}
         <TextArea

@@ -32,13 +32,14 @@ export async function POST(request: Request) {
     }
 
     const key = `${userId}/${Date.now()}-${file.name}`
+    const contentType = file.type
 
     const result = await r2StorageService.uploadFile({
       key,
       file,
     })
 
-    return NextResponse.json({ url: result.url })
+    return NextResponse.json({ url: result.url, contentType, pathName: key })
   } catch (error) {
     console.error('上传图片失败:', error)
     return NextResponse.json(

@@ -1,5 +1,5 @@
 import { DatabaseClient } from '../client'
-import { DatabaseResult } from '../types'
+import { DatabaseResult, ImageList } from '../types'
 
 export type ToolContent = {
   eventType: string
@@ -18,7 +18,7 @@ export interface DBMessage {
   content?: string
   parts?: any[]
   tool_content?: ToolContent[]
-  image_url?: string
+  image_list?: ImageList
   role: 'user' | 'assistant' | 'system' | 'tool' | 'data'
   created_at: string
 }

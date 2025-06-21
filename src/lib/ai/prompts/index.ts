@@ -64,7 +64,9 @@ export const SYSTEM_INSTRUCTION = `
   Tools
   You have access to the following tools to help you with your task
   - 'createImage': This tool is used to create an image from a text prompt. It accepts a prompt and returns an image URL.
+  - 'transformImage': This tool is used to transform an image to a specified style. It accepts a list of image URLs and returns a list of image URLs.
 
   **IMPORTANT**:
   - If you can't create an image from a text prompt, use the 'createImage' tool to create an image from text prompt.
+  - If you can't transform an image to a specified style, use the 'transformImage' tool to transform an image to a specified style.
 `

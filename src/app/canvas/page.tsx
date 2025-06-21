@@ -1,7 +1,7 @@
 'use client'
 
 import { ResizablePanel } from '@/components/ResizablePanel'
-import { Card, Flex } from '@radix-ui/themes'
+import { Flex } from '@radix-ui/themes'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
@@ -79,18 +79,7 @@ export default function CanvasPage() {
             height: '100%',
           }}
         >
-          <Card
-            size='2'
-            variant='ghost'
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <CanvasPlayground />
-          </Card>
+          <CanvasPlayground />
         </Flex>
 
         <div className='z-50 right-0 absolute top-0 bottom-0 max-w-[600] overflow-y-auto bg-white'>
@@ -99,7 +88,7 @@ export default function CanvasPage() {
             {(width) => (
               <Flex
                 direction='column'
-                className='px-6 pt-4 border-l border-gray-200 h-full w-full'
+                className='border-l border-gray-200 h-full w-full'
                 style={{
                   width,
                 }}

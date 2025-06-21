@@ -1,8 +1,8 @@
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
 } from '@aws-sdk/client-s3'
 
 interface R2Config {
@@ -47,6 +47,20 @@ export class R2Storage {
       Key: key,
       Body: Buffer.from(arrayBuffer),
       ContentType: contentType || file.type,
+      ACL: 'public-read',
+    })
+
+    await this.client.send(command)
+    return this.getPublicUrl(key)
+  }
+
+
+  async uploadFileByBase64(key: string, base64: string, contentType?: string): Promise<string> {
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      Body: Buffer.from(base64, 'base64'),
+      ContentType: contentType,
       ACL: 'public-read',
     })
 

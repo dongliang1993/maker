@@ -19,3 +19,7 @@ export interface DatabaseResult<T> {
 }
 
 export type DatabaseType = 'client' | 'server'
+
+export type ImageList = {
+  imageUrl: string
+}[]

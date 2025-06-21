@@ -2,64 +2,95 @@ import { tool } from 'ai'
 import axios from 'axios'
 import { z } from 'zod'
 
+import { OpenAI } from '@/lib/openai'
+
 import type { ImageList, StyleList } from '@/types/project'
 
-export const createImage = tool({
-  description: 'Create an image from a previous text prompt',
-  parameters: z.object({
-    prompt: z.string().describe('The prompt to create an image for'),
-    imageList: z.array(
-      z.object({
-        imageUrl: z.string().describe('The url of the image to use'),
-      })
-    ),
-    styleList: z.array(
-      z.object({
-        styleName: z.string().describe('The name of the style'),
-        styleCoverUrl: z.string().describe('The url of the style cover image'),
-        imagePrompt: z.string().describe('The prompt of the style'),
-      })
-    ),
-  }),
-  execute: async ({ prompt }) => {
-    try {
-      return {
-        imageUrl:
-          'https://assets-persist.lovart.ai/agent_images/fa4ed330-0ad9-436e-a590-c0e9620f9340.png',
+export const createImage = ({
+  userId,
+  imageList,
+  styleList,
+}: {
+  userId: string
+  imageList: ImageList
+  styleList: StyleList
+}) =>
+  tool({
+    description: 'Create an image from a text prompt',
+    parameters: z.object({
+      prompt: z.string().describe('The prompt to create an image for'),
+    }),
+    execute: async ({ prompt }) => {
+      try {
+        const finalPrompt = buildPrompt({
+          userPrompt: prompt,
+          imageList: imageList || [],
+          style: styleList?.[0],
+        })
+
+        const result = await OpenAI.generateImage({
+          prompt: finalPrompt,
+          userId,
+        })
+
+        return {
+          imageUrl: result.url,
+          prompt,
+        }
+      } catch (error) {
+        console.error('generateImage error', error)
+        return { imageUrl: null, prompt }
       }
-      // const imageUrl = await generateImage(prompt)
-    } catch (error) {
-      console.error('generateImage error', error)
-      return { imageUrl: null }
-    }
-  },
-})
+    },
+  })
 
 function buildPrompt({
   userPrompt,
   imageList,
-  styleList,
+  style,
 }: {
   userPrompt: string
   imageList: ImageList
-  styleList: StyleList
+  style?: StyleList[0]
 }) {
-  let finalPrompt = `Here is the user prompt: ${userPrompt}`
+  let finalPrompt = `
+    You are an Image Generation Expert specializing in creating and manipulating images using powerful models. Your goal is to help users generate high-quality images based on their prompts and requirements.
+
+    When handling image generation requests, you should:
+
+    1. **Analyze the Request**:
+      - Understand the desired image style and content
+      - Note any specific requirements or constraints
+      - Evaluate prompt clarity and effectiveness
+
+    2. **Generate the Image**:
+      - The user will provide a prompt.
+      - If the user provide a example image and style, you must complete the prompt with the style and the image.
+  `
 
   if (imageList.length > 0) {
-    finalPrompt += `\nAnd There is a user uploaded image: ${imageList[0]?.imageUrl}`
+    finalPrompt += `
+      Here is the image you need to transform: ${imageList[0]?.imageUrl}
+    `
   }
 
-  if (styleList.length > 0) {
-    finalPrompt += `\nUser also uploaded a reference image: ${styleList[0]?.styleCoverUrl}. You can use the style of the reference image to generate the image. \nThe style is: ${styleList[0]?.imagePrompt}`
+  if (style) {
+    finalPrompt += `
+      Here is the style user provided:
+      Style Cover Url: ${style.styleCoverUrl}
+      Style Prompt: ${style.imagePrompt}
+    `
   }
+
+  finalPrompt += `
+    Here is the prompt you need to use to transform the image:
+  ${userPrompt}
+`
 
   return finalPrompt
 }
 
 async function generateImage(prompt: string) {
-  console.log('generateImage', prompt)
-
   const response = await axios(
     'https://api.tu-zi.com/flux/v1/flux-kontext-pro',
     {

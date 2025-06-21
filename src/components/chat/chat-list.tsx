@@ -39,6 +39,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
     endRef: messagesEndRef,
     onViewportEnter,
     onViewportLeave,
+    scrollToBottom,
   } = useScrollToBottom()
 
   console.log(messages, 'messages')
@@ -64,6 +65,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
               if (type === 'tool-invocation') {
                 const toolName = part.toolInvocation.toolName
+                const state = part.toolInvocation.state
                 // @ts-expect-error: todo add type conversion from ToolInvocation to ToolInvocationUIPart
                 const imageUrl = part.toolInvocation?.result?.imageUrl
 
@@ -86,6 +88,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                         {toolName}
                       </span>
                     </Box>
+                    {state === 'call' && <Spinner size='3' />}
 
                     {imageUrl && (
                       <div
@@ -172,22 +175,15 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
   }
 
   useEffect(() => {
-    // 聊天框滚动到最底部
-    const chatList = document.getElementById('chat-list')
-
-    if (chatList) {
-      // 加上过渡效果
-      chatList.scrollTop = chatList.scrollHeight
-      chatList.style.transition = 'all 0.3s ease-in-out'
-    }
-  }, [messagesLength])
+    scrollToBottom()
+  }, [messagesLength, scrollToBottom])
 
   return (
     <ScrollArea
       scrollbars='vertical'
       type='hover'
       id='chat-list'
-      className='relative'
+      className='relative px-6 pt-4 border-l border-gray-200 h-full w-full'
       ref={containerRef}
     >
       <Flex direction='column' gap='5'>

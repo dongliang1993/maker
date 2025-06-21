@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { appendClientMessage, appendResponseMessages } from 'ai'
+
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { z } from 'zod'
@@ -101,25 +102,24 @@ export async function POST(request: Request) {
           content: message.content,
           parts: message.parts,
           tool_content: [],
+          image_list: imageList ?? [],
           name: '',
         },
       ],
     })
 
     const result = await GoogleAI.completions({
+      userId,
       messages,
       styleList,
       imageList,
-      onStepFinish: async (step) => {
-        console.log('step', step)
-      },
+
       onFinish: async (response) => {
         try {
           const [, assistantMessage] = appendResponseMessages({
             messages: [message],
             responseMessages: response.response.messages,
           })
-
           await saveMessages({
             messages: [
               {

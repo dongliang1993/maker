@@ -1,5 +1,6 @@
 import { SYSTEM_INSTRUCTION } from '@/lib/ai/prompts'
 import { createImage } from '@/lib/ai/tools/generate-images'
+import { transformImage } from '@/lib/ai/tools/transform-images'
 import { google } from '@ai-sdk/google'
 import {
   Message,
@@ -23,7 +24,7 @@ export class GoogleAI {
     imageList,
     onError,
     onFinish,
-    onStepFinish,
+    userId,
   }: {
     messages: Message[]
     styleList: StyleList
@@ -31,6 +32,7 @@ export class GoogleAI {
     onError?: ({ error }: { error: unknown }) => void
     onFinish?: StreamTextOnFinishCallback<ToolSet>
     onStepFinish?: StreamTextOnStepFinishCallback<ToolSet>
+    userId: string
   }) {
     const result = await streamText({
       model: google('gemini-2.0-flash'),
@@ -38,14 +40,18 @@ export class GoogleAI {
       system: SYSTEM_INSTRUCTION,
       messages,
       tools: {
-        createImage: createImage,
+        createImage: createImage({ userId, imageList, styleList }),
+        transformImage: transformImage({ userId, imageList, styleList }),
       },
       toolChoice: 'auto',
       maxSteps: 5,
       topP: 1,
       onError,
       onFinish,
-      onStepFinish,
+      toolCallStreaming: true,
+      onStepFinish: (step) => {
+        console.log('step', step)
+      },
     })
 
     return result

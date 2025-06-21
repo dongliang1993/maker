@@ -26,8 +26,10 @@ export const postRequestBodySchema = z.object({
       .array(
         z.object({
           url: z.string().url(),
-          name: z.string().min(1).max(2000),
-          contentType: z.enum(['image/png', 'image/jpg', 'image/jpeg']),
+          name: z.string().min(1).max(2000).optional(),
+          contentType: z
+            .enum(['image/png', 'image/jpg', 'image/jpeg'])
+            .optional(),
         })
       )
       .optional(),
