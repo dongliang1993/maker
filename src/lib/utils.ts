@@ -15,3 +15,7 @@ export function generateUUID() {
 
 export const isFunction = (val: any) =>
   toString.call(val) === '[object Function]'
+
+export const isImageTool = (toolName: string) => {
+  return ['createImage', 'transformImage'].includes(toolName)
+}

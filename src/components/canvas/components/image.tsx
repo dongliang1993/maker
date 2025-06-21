@@ -49,11 +49,6 @@ const CanvasImage: React.FC<CanvasImageProps> = ({
     if (isHandTool) return // 手型工具时不显示 hover 效果
 
     setIsHover(true)
-    const stage = e.target.getStage()
-    if (stage) {
-      const container = stage.container()
-      container.style.cursor = 'pointer'
-    }
   }
 
   const handleMouseLeave = (e: Konva.KonvaEventObject<MouseEvent>) => {

@@ -1,23 +1,24 @@
 import {
-  Avatar,
   Box,
   Container,
   Flex,
+  Heading,
   ScrollArea,
   Spinner,
   Text,
 } from '@radix-ui/themes'
-import { Image } from 'antd'
+import { Image as AntdImage } from 'antd'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 import { Logo } from '@/components/logo'
+import { getModelNameByToolName } from '@/constants/model'
 import { useScrollToBottom } from '@/hooks/useScrollToBottom'
-import { sanitizeText } from '@/lib/utils'
-import { Markdown } from '../markdown'
-import { ThinkingMessage } from './thinking-message'
-
 import { UIMessage, useChatStore } from '@/lib/use-chat'
+import { isImageTool, sanitizeText } from '@/lib/utils'
+import { Markdown } from '../markdown'
+import { Image, ImageSkeleton } from './image'
+import { ThinkingMessage } from './thinking-message'
 
 type ChatListProps = {
   projectId?: string
@@ -42,9 +43,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
     scrollToBottom,
   } = useScrollToBottom()
 
-  console.log(messages, 'messages')
-
-  const messagesLength = messages.length
+  console.log(messages, status, 'messages')
 
   const handlePreviewImage = (imageUrl: string) => {
     setPreviewImage({
@@ -85,40 +84,30 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
                           color: 'rgb(136, 168, 87)',
                         }}
                       >
-                        {toolName}
+                        {getModelNameByToolName(toolName)}
                       </span>
                     </Box>
-                    {state === 'call' && <Spinner size='3' />}
+                    {isImageTool(toolName) && state === 'call' && (
+                      <>
+                        <Heading
+                          size='2'
+                          style={{
+                            marginBottom: 'var(--space-3)',
+                          }}
+                        >
+                          {getModelNameByToolName(toolName)} is making...
+                        </Heading>
+                        <ImageSkeleton />
+                      </>
+                    )}
 
                     {imageUrl && (
-                      <div
+                      <Image
                         key={imageUrl}
-                        className='relative group'
-                        style={{
-                          display: 'inline-block',
-                          borderRadius: 'var(--radius-6)',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <Avatar
-                          size='9'
-                          src={imageUrl}
-                          radius='small'
-                          fallback='IMG'
-                          className='cursor-pointer hover:scale-110 transition-all duration-300 mas'
-                          onClick={() => handlePreviewImage(imageUrl)}
-                        />
-                        <div
-                          className='
-                              absolute left-0 bottom-0 right-0
-                              w-full h-8
-                              opacity-0 group-hover:opacity-100
-                              bg-black/40
-                              blur-md
-                              transition-all duration-300
-                            '
-                        />
-                      </div>
+                        alt='image'
+                        url={imageUrl}
+                        onPreview={handlePreviewImage}
+                      />
                     )}
                   </Box>
                 )
@@ -166,7 +155,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
           </Text>
           {msg.image_list?.map((image) => (
             <Box style={{ marginTop: '8px' }} key={image.imageUrl}>
-              <Image src={image.imageUrl} alt='image' />
+              <Image url={image.imageUrl} alt='image' />
             </Box>
           ))}
         </div>
@@ -176,7 +165,7 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
   useEffect(() => {
     scrollToBottom()
-  }, [messagesLength, scrollToBottom])
+  }, [status, scrollToBottom])
 
   return (
     <ScrollArea
@@ -209,12 +198,12 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
 
         <motion.div
           ref={messagesEndRef}
-          className='shrink-0 min-w-[24px] h-[0px]'
+          className='shrink-0 min-w-[24px] h-[24px]'
           onViewportLeave={onViewportLeave}
           onViewportEnter={onViewportEnter}
         />
       </Flex>
-      <Image
+      <AntdImage
         style={{ display: 'none' }}
         src={previewImage.imageUrl}
         alt='preview image'

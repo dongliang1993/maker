@@ -148,7 +148,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
       <Flex
         direction='column'
         gap='1'
-        className='bg-white rounded-x mx-auto w-1/2 max-w-[542px]'
+        className='bg-white rounded-x mx-auto w-1/2 max-w-[480px]'
         style={{
           borderRadius: '24px',
           padding: '12px 12px',

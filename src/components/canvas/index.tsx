@@ -4,6 +4,7 @@ import Konva from 'konva'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Layer, Stage } from 'react-konva'
 
+import { cn } from '@/lib/utils'
 import { CanvasImage } from './components/image'
 import { ToolBar } from './components/tool-bar'
 
@@ -92,6 +93,9 @@ const CanvasPlayground = () => {
     const newImages = images.map((img) =>
       img.id === id ? { ...img, ...attrs } : img
     )
+
+    console.log('updateImage', id, images)
+
     setImages(newImages)
     addToHistory(newImages)
   }
@@ -251,7 +255,6 @@ const CanvasPlayground = () => {
   }
 
   const handleUndo = () => {
-    console.log('undo', history, historyIndex)
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1
       setImages([...history[newIndex]])
@@ -409,6 +412,7 @@ const CanvasPlayground = () => {
     }
   }
 
+  console.log('images', history, historyIndex)
   // 键盘快捷键
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -500,6 +504,9 @@ const CanvasPlayground = () => {
       />
 
       <Stage
+        className={cn({
+          'custom-cursor': currentTool === 'select',
+        })}
         width={stageSize.width}
         height={stageSize.height}
         ref={stageRef}
@@ -511,7 +518,6 @@ const CanvasPlayground = () => {
         onDragEnd={handleStageDragEnd}
         style={{
           backgroundColor: '#f8f9fa',
-          cursor: currentTool === 'hand' ? 'grab' : 'default',
         }}
       >
         <Layer>

@@ -9,7 +9,6 @@ import type { ImageList, StyleList } from '@/types/project'
 type UIMessage = UIMessageFormAI & {
   image_list?: ImageList
   style_list?: StyleList
-  text: string
   tool_content?: ToolContent[]
   name?: string
 }
