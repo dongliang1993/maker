@@ -22,6 +22,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'fal.media',
       },
+      {
+        protocol: 'https',
+        hostname: 'assets-persist.lovart.ai',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-b22efe3a0d624f13a8841e95c9daec6f.r2.dev',
+      },
     ],
   },
 }
