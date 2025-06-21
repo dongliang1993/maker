@@ -1,21 +1,24 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { Flex } from '@radix-ui/themes'
 import { useCallback, useEffect, useState } from 'react'
 
+import { cn } from '@/lib/utils'
+
 interface ResizablePanelProps {
+  id?: string
   className?: string
-  children: (width: number) => React.ReactNode
+  children: React.ReactNode
   defaultWidth?: number
   minWidth?: number
   maxWidth?: number
 }
 
 export function ResizablePanel({
+  id,
   className,
   children,
-  defaultWidth = 480,
+  defaultWidth = 320,
   minWidth = 320,
   maxWidth = 600,
 }: ResizablePanelProps) {
@@ -57,8 +60,12 @@ export function ResizablePanel({
 
   return (
     <Flex
-      style={{ position: 'relative', width }}
-      className={cn('max-w-full', className)}
+      id={id}
+      style={{ width }}
+      className={cn(
+        'max-w-full duration-200 ease-in-out transition-[width,height,top]',
+        className
+      )}
     >
       <div
         style={{
@@ -73,7 +80,7 @@ export function ResizablePanel({
         }}
         onMouseDown={startResizing}
       />
-      {children(width)}
+      {children}
     </Flex>
   )
 }

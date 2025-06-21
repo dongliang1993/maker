@@ -1,11 +1,11 @@
 'use client'
 
-import { ResizablePanel } from '@/components/ResizablePanel'
 import { Flex } from '@radix-ui/themes'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import { ResizablePanel } from '@/components/ResizablePanel'
 import { CanvasPlayground } from '@/components/canvas'
 import { ChatBox, ChatList } from '@/components/chat'
 import { ChatProvider } from '@/lib/use-chat'
@@ -62,6 +62,7 @@ export default function CanvasPage() {
 
   return (
     <ChatProvider {...options}>
+      {/* 画布区域 */}
       <Flex
         direction='row'
         width='100%'
@@ -72,33 +73,20 @@ export default function CanvasPage() {
           backgroundColor: '#F8F7F7',
         }}
       >
-        {/* 左侧画布区域 */}
-        <Flex
-          style={{
-            flex: 1,
-            height: '100%',
-          }}
-        >
-          <CanvasPlayground />
-        </Flex>
-
-        <div className='z-50 right-0 absolute top-0 bottom-0 max-w-[600] overflow-y-auto bg-white'>
-          {/* 右侧聊天区域 */}
-          <ResizablePanel>
-            {(width) => (
-              <Flex
-                direction='column'
-                className='border-l border-gray-200 h-full w-full'
-                style={{
-                  width,
-                }}
-              >
-                <ChatList loading={loading} />
-              </Flex>
-            )}
-          </ResizablePanel>
-        </div>
+        <CanvasPlayground />
       </Flex>
+
+      {/* 右侧聊天区域 */}
+      <ResizablePanel
+        id='agent-panel'
+        className='absolute z-50 right-0 top-0 bottom-0 max-w-[600]'
+        defaultWidth={380}
+        maxWidth={380}
+      >
+        <Flex direction='column' className='border-l border-gray-100 bg-white'>
+          <ChatList loading={loading} />
+        </Flex>
+      </ResizablePanel>
       <ChatBox projectId={projectId} />
     </ChatProvider>
   )

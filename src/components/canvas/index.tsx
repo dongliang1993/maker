@@ -251,6 +251,7 @@ const CanvasPlayground = () => {
   }
 
   const handleUndo = () => {
+    console.log('undo', history, historyIndex)
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1
       setImages([...history[newIndex]])
@@ -426,18 +427,6 @@ const CanvasPlayground = () => {
           break
       }
 
-      if (currentTool === 'hand') return
-
-      if (selectedId) {
-        switch (e.key) {
-          case 'Delete':
-          case 'Backspace':
-            setImages((prev) => prev.filter((img) => img.id !== selectedId))
-            setSelectedId(null)
-            break
-        }
-      }
-
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
           case '=':
@@ -459,9 +448,31 @@ const CanvasPlayground = () => {
             break
         }
       }
+
+      if (currentTool === 'hand') return
+
+      if (selectedId) {
+        switch (e.key) {
+          case 'Delete':
+          case 'Backspace':
+            setImages((prev) => prev.filter((img) => img.id !== selectedId))
+            setSelectedId(null)
+            break
+        }
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+          case 'z':
+            handleUndo()
+            e.preventDefault()
+            break
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
+
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedId, currentTool])
 

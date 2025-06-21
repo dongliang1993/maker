@@ -138,30 +138,38 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ projectId }) => {
     }
   }
 
+  const hasImage = attachments.length > 0 || style
+
   return (
     <Box
-      style={{
-        borderRadius: '24px',
-        padding: '12px 12px',
-        boxShadow: 'rgba(193, 193, 193, 0.25) 0px 4px 81.6px 0px',
-        border: '1px solid #e9e9e9',
-      }}
-      className='fixed z-20 bottom-10 rounded-xl bg-white w-1/2 left-1/3 -translate-x-1/2'
+      id='chat-box'
+      className='w-full flex justify-center items-center fixed z-20 bottom-10'
     >
-      <Flex direction='column' gap='2'>
-        {/* 图片列表 */}
-        <Flex direction='row' gap='3'>
-          {renderStyle()}
-          {attachments?.map((attachment) => (
-            <Avatar
-              size='5'
-              key={attachment.pathName}
-              src={attachment.url}
-              radius='medium'
-              fallback='IMG'
-            />
-          ))}
-        </Flex>
+      <Flex
+        direction='column'
+        gap='1'
+        className='bg-white rounded-x mx-auto w-1/2 max-w-[542px]'
+        style={{
+          borderRadius: '24px',
+          padding: '12px 12px',
+          boxShadow: 'rgba(193, 193, 193, 0.25) 0px 4px 81.6px 0px',
+          border: '1px solid #e9e9e9',
+        }}
+      >
+        {hasImage && (
+          <Flex direction='row' gap='3'>
+            {renderStyle()}
+            {attachments?.map((attachment) => (
+              <Avatar
+                size='5'
+                key={attachment.pathName}
+                src={attachment.url}
+                radius='medium'
+                fallback='IMG'
+              />
+            ))}
+          </Flex>
+        )}
         {/* 输入区域 */}
         <TextArea
           placeholder='Describe your design requirements...'

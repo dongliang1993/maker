@@ -182,7 +182,6 @@ export const ChatList: React.FC<ChatListProps> = ({ loading }) => {
     <ScrollArea
       scrollbars='vertical'
       type='hover'
-      id='chat-list'
       className='relative px-6 pt-4 border-l border-gray-200 h-full w-full'
       ref={containerRef}
     >
